@@ -1,0 +1,8 @@
+:root {
+    --toolbar-width: 56px;
+    --side-view-width: 16%;
+    --label-editor-width: 300px;
+    --border-color: var(--border-color);
+    --aspect-ratio: calc(16 / 9);
+    --surface-color: var(--surface-color);
+}

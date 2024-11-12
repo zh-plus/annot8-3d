@@ -1,0 +1,33 @@
+{
+  "name": "annot8-3d",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --build tsconfig.json && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@types/three": "^0.169.0",
+    "camera-controls": "^2.9.0",
+    "pinia": "^2.2.6",
+    "three": "^0.161.0",
+    "uuid": "^11.0.2",
+    "vue": "^3.5.12",
+    "vuetify": "^3.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@types/rollup": "^0.51.4",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^25.0.1",
+    "sass": "^1.80.6",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.10",
+    "vitest": "^1.6.0",
+    "vue-tsc": "^2.1.8"
+  }
+}
