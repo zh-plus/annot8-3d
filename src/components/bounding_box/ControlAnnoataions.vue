@@ -21,8 +21,7 @@ const scene = props.viewerContext.scene
 
 const isKeyAPressed_a = ref(false)
 const isKeyAPressed_d = ref(false)
-
-const showControlPanel = ref(false);
+const showControlPanel = ref(false)
 
 const boxDimensions = reactive({
   width: currentBox.value?.width || 1,
@@ -38,16 +37,17 @@ const boxPosition = reactive({
 const updateBoxProperties = () => {
   if (currentlySelectedBox instanceof THREE.LineSegments) {
     // 检查是否需要更新
-    console.log("updateBoxProperties is running")
+    annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
+        boxPosition.x, boxPosition.y, boxPosition.z,
+        boxDimensions.width, boxDimensions.height, boxDimensions.depth);
+
     const newGeometry = new THREE.BoxGeometry(
         boxDimensions.width,
         boxDimensions.height,
         boxDimensions.depth
     );
     const newEdges = new THREE.EdgesGeometry(newGeometry);
-    // 创建新的 LineSegments 对象
     const newBox = new THREE.LineSegments(newEdges, currentlySelectedBox.material);
-    // 更新位置
     newBox.position.set(
         boxPosition.x,
         boxPosition.y,
@@ -55,21 +55,33 @@ const updateBoxProperties = () => {
     );
     // 替换旧对象
     scene.remove(currentlySelectedBox);
-    scene.add(newBox);
     currentlySelectedBox.geometry.dispose(); // 释放旧几何体资源
     currentlySelectedBox = newBox; // 更新为新创建的 LineSegments
-    // requestAnimationFrame(() => {
-    //   props.viewerContext.renderer.render(props.viewerContext.scene, props.viewerContext.camera);
-    // });
+    scene.add(currentlySelectedBox);
   }
 };
 
-watch([boxDimensions, boxPosition, currentBox], async () => {
+watch([boxDimensions, boxPosition], async () => {
+  console.log('Box dimensions or position changed:', boxDimensions, boxPosition);
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
   }
-});
+}, {deep: true});
+watch(
+    () => annotationStore.currentBox,
+    (newBox) => {
+      if (newBox) {
+        boxDimensions.width = newBox.width;
+        boxDimensions.height = newBox.height;
+        boxDimensions.depth = newBox.depth;
+        boxPosition.x = newBox.x;
+        boxPosition.y = newBox.y;
+        boxPosition.z = newBox.z;
+      }
+    },
+    {deep: true}
+);
 
 const onMouseClick = (event: MouseEvent): void => {
   // 计算位置
@@ -103,6 +115,7 @@ const onMouseClick = (event: MouseEvent): void => {
     if (annotation) {
       console.log("selected annotation: ", annotation)
       annotationStore.selectAnnotation(annotation.id);
+      annotationStore.currentBox = annotation;
       if (intersectedBox.object instanceof THREE.LineSegments) {
         const material_current = intersectedBox.object.material;
         if (Array.isArray(material_current)) {
@@ -113,18 +126,10 @@ const onMouseClick = (event: MouseEvent): void => {
       }
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
       // 打开面板
-      if (annotation) {
-        annotationStore.currentBox = annotation;
-        // 将当前边界框的尺寸和位置加载到控制面板中
-        boxDimensions.width = annotation.width;
-        boxDimensions.height = annotation.height;
-        boxDimensions.depth = annotation.depth;
-        boxPosition.x = annotation.x;
-        boxPosition.y = annotation.y;
-        boxPosition.z = annotation.z;
-        showControlPanel.value = true; // 显示控制面板
-      }
+      showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
+    } else {
+      showControlPanel.value = false;
     }
   } else {
     annotationStore.annotations.forEach(annotation => {
@@ -141,7 +146,6 @@ const onMouseClick = (event: MouseEvent): void => {
     // 将边界框添加到场景中
     scene.add(BBox)
   }
-
 }
 
 const onKeyDown_a = (event: KeyboardEvent) => {
@@ -149,7 +153,6 @@ const onKeyDown_a = (event: KeyboardEvent) => {
     isKeyAPressed_a.value = true
     console.log("isKeyAPressed:", isKeyAPressed_a)
   }
-  console.log("boxDimensions:", boxDimensions)
 }
 // 处理键盘抬起事件，释放字母 'a' 键
 const onKeyUp_a = (event: KeyboardEvent) => {
@@ -224,23 +227,99 @@ onBeforeUnmount(() => {
 <template>
   <!-- 控制面板 -->
   <div
-      v-if="showControlPanel && currentBox"
+      v-if="showControlPanel && annotationStore.currentBox"
       class="control-panel"
       style="position: absolute; top: 10px; left: 10px; z-index: 10;"
   >
-    <v-card class="pa-3" elevation="5" style="width: 300px;">
-      <v-card-title>Adjust Bounding Box</v-card-title>
+    <v-card class="pa-3" elevation="5" style="width: 300px; margin-bottom: 10px;">
+      <v-card-title>Adjust Size</v-card-title>
       <v-card-text>
-        <v-slider v-model="currentBox.width" label="Width" min="0.1" max="10" step="0.1"/>
-        <v-slider v-model="currentBox.height" label="Height" min="0.1" max="10" step="0.1"/>
-        <v-slider v-model="currentBox.depth" label="Depth" min="0.1" max="10" step="0.1"/>
-        <v-text-field v-model="currentBox.x" label="X Position" type="number"/>
-        <v-text-field v-model="currentBox.y" label="Y Position" type="number"/>
-        <v-text-field v-model="currentBox.z" label="Z Position" type="number"/>
+        <!-- 尺寸调整 -->
+        <v-slider
+            v-model="annotationStore.currentBox.width"
+            label="Width"
+            min="0.1"
+            max="10"
+            step="0.1"
+        />
+        <v-slider
+            v-model="annotationStore.currentBox.height"
+            label="Height"
+            min="0.1"
+            max="10"
+            step="0.1"
+        />
+        <v-slider
+            v-model="annotationStore.currentBox.depth"
+            label="Depth"
+            min="0.1"
+            max="10"
+            step="0.1"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.width"
+            label="Width"
+            step="0.1"
+            type="number"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.height"
+            label="Height"
+            step="0.1"
+            type="number"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.depth"
+            label="Depth"
+            step="0.1"
+            type="number"
+        />
       </v-card-text>
-      <v-card-actions>
-        <v-btn @click="showControlPanel = false">Close</v-btn>
-      </v-card-actions>
+    </v-card>
+    <v-card class="pa-3" elevation="5" style="width: 300px;">
+      <v-card-title>Adjust Position</v-card-title>
+      <v-card-text>
+        <!-- 位置调整 -->
+        <v-slider
+            v-model="annotationStore.currentBox.x"
+            label="X Position"
+            min="-10"
+            max="10"
+            step="0.1"
+        />
+        <v-slider
+            v-model="annotationStore.currentBox.y"
+            label="Y Position"
+            min="-10"
+            max="10"
+            step="0.1"
+        />
+        <v-slider
+            v-model="annotationStore.currentBox.z"
+            label="Z Position"
+            min="-10"
+            max="10"
+            step="0.1"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.x"
+            label="X Position"
+            step="0.1"
+            type="number"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.y"
+            label="Y Position"
+            step="0.1"
+            type="number"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.z"
+            label="Z Position"
+            step="0.1"
+            type="number"
+        />
+      </v-card-text>
     </v-card>
   </div>
 </template>

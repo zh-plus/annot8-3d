@@ -17,7 +17,6 @@ import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
-import DrawBB from "@/components/bounding_box/DrawBB.vue";
 import ControlAnnoataions from "@/components/bounding_box/ControlAnnoataions.vue";
 import {ViewerContext} from "@/types";
 

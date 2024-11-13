@@ -10,7 +10,7 @@ export const useAnnotationStore = defineStore('annotation', {
         selectedAnnotation: null,
         isDrawing: false,
         //add new
-        currentBox: {x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1},
+        currentBox: null,
         draggingAnnotation: false // 新增状态，用来表示当前拖拽的注解
     }),
     actions: {
