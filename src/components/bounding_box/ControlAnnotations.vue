@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import * as THREE from "three";
 import {useRaycaster} from "@/composables/useViewerContext.ts";
-import {computed, PropType, reactive, Ref, ref, watch} from "vue";
+import {computed, PropType, reactive, ref, watch} from "vue";
 import type {ViewerContext} from "@/types";
 import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
-import {VDialog, VCard, VTextField, VSlider} from 'vuetify/components';
+import {VCard, VTextField, VSlider} from 'vuetify/components';
 
 const props = defineProps({
   viewerContext: {
@@ -85,21 +85,23 @@ watch(
 
 const onMouseClick = (event: MouseEvent): void => {
   // 计算位置
-  const intersect = useRaycaster(props.viewerContext)
-  const intersects = intersect.calculateIntersects(event)
+  const click = useRaycaster(props.viewerContext)
+  const intersects = click.calculateIntersects(event)
   // 查找与鼠标点击相交的边界框
   const intersectedBox = intersects.find((intersection) => {
     return intersection.object instanceof THREE.LineSegments
   })
   if (intersectedBox) {
-    const {x, y} = intersectedBox.object.position
+    const {x, y, z} = intersectedBox.object.position
     // 查找与该位置匹配的 annotation
     const annotation = annotationStore.annotations.find((annotation) => {
       const epsilon_x = annotation.width * 0.6
-      const epsilon_y = annotation.depth * 0.6;
+      const epsilon_y = annotation.height * 0.6;
+      const epsilon_z = annotation.depth * 0.6
       return (
           Math.abs(annotation.x - x) < epsilon_x &&
-          Math.abs(annotation.y - y) < epsilon_y
+          Math.abs(annotation.y - y) < epsilon_y &&
+          Math.abs(annotation.z - z) < epsilon_z
       )
     })
     // 更新上一个
@@ -129,12 +131,10 @@ const onMouseClick = (event: MouseEvent): void => {
       showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
     } else {
+      currentlySelectedBox = null
       showControlPanel.value = false;
-    }
-  } else {
-    annotationStore.annotations.forEach(annotation => {
       annotationStore.selectedAnnotation = null;
-    });
+    }
   }
   if (isBuildBBox()) {
     if (event.button !== 2 || !isKeyAPressed_a.value) {
@@ -171,7 +171,9 @@ const onKeyDown_d = (event: KeyboardEvent) => {
       console.log("isDelete")
       currentlySelectedBox.clear()
       props.viewerContext.scene.remove(currentlySelectedBox)  // 从场景中删除选中的边界框
-      currentlySelectedBox = null;
+      currentlySelectedBox = null
+      showControlPanel.value = false;
+      annotationStore.selectedAnnotation = null;
     }
   }
 }
@@ -327,6 +329,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .control-panel {
   cursor: move;
-  /* 可以增加一些动画效果，增加交互体验 */
 }
 </style>
