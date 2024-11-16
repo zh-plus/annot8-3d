@@ -2,6 +2,10 @@
   <v-app class="fill-height">
     <v-main class="fill-height pa-0">
       <div class="layout-grid">
+        <!-- Image Display Section -->
+        <div class="image-display">
+          <img :src="imageSrc" alt="Selected Image" class="image" v-if="imageSrc" />
+        </div>
         <!-- Toolbar -->
         <tool-bar/>
 
@@ -45,6 +49,7 @@
 
 <script lang="ts" setup>
 import {useDisplay} from 'vuetify'
+import {ref} from 'vue'
 import ToolBar from '@/components/toolbar/ToolBar.vue'
 import MainViewer from '@/components/viewer/MainViewer.vue'
 import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
@@ -54,6 +59,10 @@ import {UI_COLORS} from "@/constants" // Used in <style> v-bind
 
 const viewportStore = useViewportStore()
 const {lgAndUp, mdAndDown} = useDisplay()
+
+const imageSrc = ref<string | null>(null);
+// imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
+
 </script>
 
 <style scoped>
@@ -66,6 +75,23 @@ const {lgAndUp, mdAndDown} = useDisplay()
   overflow: hidden;
   position: relative;
   margin-left: var(--toolbar-width);
+}
+
+.image-display {
+  position: absolute;
+  top: 10px; /* 调整图像到左上角的距离 */
+  left: 10px;
+  z-index: 1; /* 确保图像在其他元素上方 */
+  background: rgba(0, 0, 0, 0.6); /* 可选：添加背景遮罩 */
+  padding: 5px; /* 可选：内边距 */
+  border-radius: 8px; /* 可选：圆角效果 */
+}
+
+.image {
+  max-width: 400px; /* 限制图像宽度 */
+  max-height: 250px; /* 限制图像高度 */
+  object-fit: contain; /* 保持图像比例 */
+  border: 1px solid var(--border-color); /* 可选：添加边框 */
 }
 
 .main-section {

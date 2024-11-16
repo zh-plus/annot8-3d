@@ -6,6 +6,7 @@ import type {ViewerContext} from "@/types";
 import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
+import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
 
 const props = defineProps({
   viewerContext: {
@@ -13,6 +14,9 @@ const props = defineProps({
     required: true
   }
 })
+
+const toolStore = useToolStore(); // 获取 store 实例
+const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
 
 const annotationStore = useAnnotationStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
@@ -229,7 +233,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- 控制面板 -->
   <div
-      v-if="showControlPanel && annotationStore.currentBox"
+      v-if="showControlPanel && annotationStore.currentBox && selectedTool === 'box'"
       class="control-panel"
       style="position: absolute; top: 10px; left: 10px; z-index: 10;"
   >
