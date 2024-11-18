@@ -10,8 +10,7 @@ export const useAnnotationStore = defineStore('annotation', {
         selectedAnnotation: null,
         isDrawing: false,
         //add new
-        currentBox: null,
-        draggingAnnotation: false // 新增状态，用来表示当前拖拽的注解
+        currentBox: null
     }),
     actions: {
         addAnnotation(annotation: {
@@ -77,6 +76,15 @@ export const useAnnotationStore = defineStore('annotation', {
                 })
             } else {
                 boundingBox.position.set(0, 0, 0)
+                this.addAnnotation({
+                    x: 0,
+                    z: 0,
+                    y: 0,
+                    width: width,
+                    height: height,
+                    depth: depth,
+                    color: color,
+                })
             }
             // 保存尺寸和位置到 userData
             boundingBox.userData.dimensions = {

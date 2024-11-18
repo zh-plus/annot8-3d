@@ -41,5 +41,4 @@ export interface AnnotationState {
 
     //add new
     currentBox: { x: number, y: number, z: number, width: number, height: number, depth: number } | null
-    draggingAnnotation: boolean
 }

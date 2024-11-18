@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as THREE from "three";
 import {useRaycaster} from "@/composables/useViewerContext.ts";
-import {computed, PropType, reactive, ref, watch} from "vue";
+import {computed, nextTick, PropType, reactive, ref, watch, watchEffect} from "vue";
 import type {ViewerContext} from "@/types";
 import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
@@ -12,6 +12,14 @@ const props = defineProps({
     type: Object as PropType<ViewerContext>,
     required: true
   }
+})
+const emit = defineEmits<{
+  (s: "isDrag", status: boolean): void
+}>()
+nextTick(() => {
+  watchEffect(() => {
+    emit('isDrag', isDrag())
+  })
 })
 
 const annotationStore = useAnnotationStore()
@@ -83,7 +91,7 @@ watch(
     {deep: true}
 );
 
-const onMouseClick = (event: MouseEvent): void => {
+const ClickBBox = (event: MouseEvent): void => {
   // 计算位置
   const click = useRaycaster(props.viewerContext)
   const intersects = click.calculateIntersects(event)
@@ -136,6 +144,13 @@ const onMouseClick = (event: MouseEvent): void => {
       annotationStore.selectedAnnotation = null;
     }
   }
+}
+
+const build_BBox = (event: MouseEvent): void => {
+  // 计算位置
+  const click = useRaycaster(props.viewerContext)
+  const intersects = click.calculateIntersects(event)
+
   if (isBuildBBox()) {
     if (event.button !== 2 || !isKeyAPressed_a.value) {
       return // 如果不是右键点击或字母 'a' 没有被按下，则不执行
@@ -147,6 +162,46 @@ const onMouseClick = (event: MouseEvent): void => {
     scene.add(BBox)
   }
 }
+
+// 鼠标拖动相关变量
+let initialMousePosition = {x: 0, y: 0};
+let initialBoxPosition = {x: 0, y: 0};
+
+const onMouseDown = (event: MouseEvent): void => {
+  if (event.button === 0) {
+  } else if (event.button === 2) {
+    ClickBBox(event)
+    build_BBox(event)
+  }
+  if (!currentlySelectedBox || !isDrag()) return;
+  console.log("ready to move, you can drag your mouse")
+  annotationStore.isDrawing = true
+  // 开始拖动
+  initialMousePosition = {x: event.clientX, y: event.clientY};
+  // 记录边界框初始位置
+  initialBoxPosition = {
+    x: boxPosition.x as number,
+    y: boxPosition.z as number,
+  };
+};
+
+const onMouseMove = (event: MouseEvent): void => {
+  if (!annotationStore.isDrawing || !currentlySelectedBox) return;
+  console.log("move is running")
+  // 计算鼠标移动的偏移量
+  const deltaX = (event.clientX - initialMousePosition.x) * 0.1; // 调整系数 0.01 可以调节灵敏度
+  const deltaY = (event.clientY - initialMousePosition.y) * 0.1;
+
+  // 更新边界框的位置（这里假设拖动只更新 x 和 y 轴，可以根据需要调整为 3D 拖动）
+  boxPosition.x = initialBoxPosition.x + deltaX;
+  boxPosition.z = initialBoxPosition.y + deltaY; // 鼠标 y 轴方向与 3D 场景 y 轴方向相反
+};
+
+
+const onMouseUp = (): void => {
+  // 停止拖动
+  annotationStore.isDrawing = false;
+};
 
 const onKeyDown_a = (event: KeyboardEvent) => {
   if (event.key === 'a') {
@@ -194,6 +249,11 @@ const isDelete = () => {
   const selectedTool = toolStore.currentTool;  // 使用 getter 获取选中的工具
   return (selectedTool && selectedTool.active && selectedTool.id === 'delete')
 }
+const isDrag = () => {
+  const toolStore = useToolStore()
+  const selectedTool = toolStore.currentTool;  // 使用 getter 获取选中的工具
+  return (selectedTool && selectedTool.active && selectedTool.id === 'drag')
+}
 
 // 组件挂载时监听
 onMounted(() => {
@@ -204,9 +264,9 @@ onMounted(() => {
   window.addEventListener('keyup', onKeyUp_d)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
-    canvas.addEventListener('contextmenu', (event) => {
-      onMouseClick(event)
-    })
+    canvas.addEventListener('mousedown', onMouseDown);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('mouseup', onMouseUp);
   }
 })
 
@@ -218,10 +278,9 @@ onBeforeUnmount(() => {
   window.addEventListener('keyup', onKeyUp_d)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
-    canvas.removeEventListener('contextmenu', (event) => {
-      event.preventDefault()
-      onMouseClick(event)
-    })
+    canvas.removeEventListener('mousedown', onMouseDown);
+    canvas.removeEventListener('mousemove', onMouseMove);
+    canvas.removeEventListener('mouseup', onMouseUp);
   }
 })
 
