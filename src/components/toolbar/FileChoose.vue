@@ -1,12 +1,13 @@
 <template>
-    <!-- 文件选择器（隐藏） -->
-    <input
-      ref="fileInput"
-      type="file"
-      style="display: none"  
-      @change="handleFileSelect"
-    />
-  </template>
+  <!-- File Selector (Hidden) -->
+  <input
+    ref="fileInput"
+    type="file"
+    style="display: none"
+    multiple 
+    @change="handleFileSelect"
+  />
+</template>
   
 
 <script setup lang="ts">
@@ -15,6 +16,7 @@ import { ref, watch } from 'vue';
 import { useToolStore } from '@/stores'; // 引入 Pinia store
 import { storeToRefs } from 'pinia';
 import { useFileStore } from '@/stores/file.ts'; 
+import { File_Anno } from '../../types/annotation'; // Import the File_Anno interface
 
 const toolStore = useToolStore(); // 获取 store 实例
 const { selectedTool } = storeToRefs(toolStore); // 获取选中的工具
@@ -40,14 +42,19 @@ const openFilePicker = () => {
   }
 };
 
-// 处理文件选择
+// 批量文件选择
 const handleFileSelect = (event: Event) => {
   const input = event.target as HTMLInputElement;
   if (input?.files?.length) {
-    const selectedFile = input.files[0];
-    console.log('选择的文件:', selectedFile);
-    fileStore.setSelectedFile(selectedFile);
-
+    const selectedFiles = Array.from(input.files);
+    console.log('选择的文件:', selectedFiles);
+    // 转化成File_Anno格式
+    const fileAnnoArray: File_Anno[] = selectedFiles.map(file => ({
+      file,
+      annotations: [] // 初始化空数组
+    }));
+    
+    fileStore.updateFile(fileAnnoArray);
   }
 };
 

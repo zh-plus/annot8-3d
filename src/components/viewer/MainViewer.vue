@@ -42,7 +42,7 @@ const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 
 const fileStore = useFileStore(); 
-const { selectedFile } = storeToRefs(fileStore); // 解构出 selectedFile
+const { selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
 
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
@@ -117,7 +117,7 @@ watch(selectedFile, (newFile, oldFile) => {
   if (newFile !== oldFile && viewerContext.value && newFile !== null) {
     clearScene(viewerContext.value.scene);
     console.log("Selected file changed:", newFile);
-    setupScene(viewerContext.value, newFile.name); // Call setupScene with updated selectedFile
+    setupScene(viewerContext.value, newFile.file.name); // Call setupScene with updated selectedFile
   }
 });
 

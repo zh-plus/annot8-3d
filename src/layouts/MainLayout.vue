@@ -12,6 +12,11 @@
         <!-- Main View -->
         <div class="main-section">
           <main-viewer/>
+          <!-- Label controller-->
+        <div class="label-controller">
+          <label-controller/>
+        </div>
+
         </div>
 
         <!-- Side Views and Label Editor Container -->
@@ -56,12 +61,13 @@ import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
 import {useViewportStore} from '@/stores'
 import {UI_COLORS} from "@/constants" // Used in <style> v-bind
+import LabelController from '@/components/label/LabelController.vue'
 
 const viewportStore = useViewportStore()
 const {lgAndUp, mdAndDown} = useDisplay()
 
 const imageSrc = ref<string | null>(null);
-// imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
+imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
 
 </script>
 
@@ -79,7 +85,7 @@ const imageSrc = ref<string | null>(null);
 
 .image-display {
   position: absolute;
-  top: 10px; /* 调整图像到左上角的距离 */
+  bottom: 10px; /* 调整图像到左上角的距离 */
   left: 10px;
   z-index: 1; /* 确保图像在其他元素上方 */
   background: rgba(0, 0, 0, 0.6); /* 可选：添加背景遮罩 */
@@ -92,6 +98,20 @@ const imageSrc = ref<string | null>(null);
   max-height: 250px; /* 限制图像高度 */
   object-fit: contain; /* 保持图像比例 */
   border: 1px solid var(--border-color); /* 可选：添加边框 */
+}
+
+.label-controller {
+  position: absolute; /* Place it relative to .main-section */
+  top: 10px; /* Adjust as needed for spacing from the top */
+  left: 10px; /* Adjust as needed for spacing from the left */
+  width: 300px; /* Set a fixed width for the label editor */
+  height: auto; /* Adjust height as needed */
+  background-color: white; /* Add a background to distinguish it */
+  border: 1px solid var(--border-color); /* Optional: Add a border */
+  z-index: 10; /* Ensure it is on top of other elements */
+  padding: 16px; /* Optional: Add some internal padding */
+  border-radius: 8px; /* Optional: Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
 }
 
 .main-section {

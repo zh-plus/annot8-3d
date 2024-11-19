@@ -7,6 +7,7 @@ import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
 import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
+import {useFileStore} from '@/stores/file'
 
 const props = defineProps({
   viewerContext: {
@@ -17,6 +18,8 @@ const props = defineProps({
 
 const toolStore = useToolStore(); // 获取 store 实例
 const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
+const fileStore = useFileStore();
+const {selectedFile} = storeToRefs(fileStore);
 
 const annotationStore = useAnnotationStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
@@ -98,6 +101,7 @@ const onMouseClick = (event: MouseEvent): void => {
   if (intersectedBox) {
     const {x, y, z} = intersectedBox.object.position
     // 查找与该位置匹配的 annotation
+    
     const annotation = annotationStore.annotations.find((annotation) => {
       const epsilon_x = annotation.width * 0.6
       const epsilon_y = annotation.height * 0.6;
@@ -148,7 +152,9 @@ const onMouseClick = (event: MouseEvent): void => {
     // 创建方块
     const BBox = annotationStore.CreatBBox(intersects, "Car", 2, 1, 2)
     // 将边界框添加到场景中
-    scene.add(BBox)
+    if (BBox != null) {
+      scene.add(BBox)
+    }
   }
 }
 

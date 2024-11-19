@@ -43,3 +43,12 @@ export interface AnnotationState {
     currentBox: { x: number, y: number, z: number, width: number, height: number, depth: number } | null
     draggingAnnotation: boolean
 }
+
+export interface Box {
+    x: number;
+    y: number;
+    z: number;
+    width: number;
+    height: number;
+    depth: number;
+  }
