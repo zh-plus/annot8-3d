@@ -14,7 +14,7 @@ const props = defineProps({
   }
 })
 const emit = defineEmits<{
-  (s: "isDrag", status: boolean): void
+  (s: "isDrag", status: boolean | undefined): void
 }>()
 nextTick(() => {
   watchEffect(() => {
