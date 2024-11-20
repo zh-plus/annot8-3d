@@ -1,5 +1,6 @@
-import {defineStore} from 'pinia'
+import {defineStore,storeToRefs} from 'pinia'
 import type {LabelState} from './types'
+import { useAnnotationStore } from './annotation'
 import {v4 as uuidv4} from 'uuid'
 
 export const useLabelStore = defineStore('labels', {
@@ -31,11 +32,21 @@ export const useLabelStore = defineStore('labels', {
 
         toggleLabel(labelId: string) {
             const index = this.selectedLabels.findIndex(label => label.id === labelId)
+            const AnnotationStore = useAnnotationStore();
+            const { selectedAnnotation,annotations} = storeToRefs(AnnotationStore); //解构
+
             if (index === -1) {
                 const label = this.labels.find(l => l.id === labelId)
                 if (label) this.selectedLabels.push(label)
             } else {
                 this.selectedLabels.splice(index, 1)
+            }
+
+            if (selectedAnnotation!=null) {
+                const index = annotations.value.findIndex(a => a.id === selectedAnnotation.value) 
+            if (index !== -1) {
+                annotations.value[index].label = this.selectedLabels.map(l => l.name)
+            }
             }
         }
     }

@@ -7,7 +7,7 @@
           icon="mdi-plus"
           size="small"
           variant="text"
-          @click="showAddDialog = true" /><!--点击按钮后，弹出一个添加项的对话框 -->
+          @click="showAddDialog = true" /> <!--点击按钮后，弹出一个添加项的对话框 -->
       />
     </v-card-title>
     <!-- 2. 标签列表内容区域 -->
@@ -79,11 +79,12 @@
 
 <script lang="ts" setup>
 import {ref} from 'vue'
-import {useLabelStore} from '@/stores'
+import {useLabelStore , useAnnotationStore} from '@/stores'
 import {storeToRefs} from 'pinia'
 
 const labelStore = useLabelStore()
 const {labels, selectedLabels} = storeToRefs(labelStore)
+const annotationStore = useAnnotationStore()
 
 const showAddDialog = ref(false)
 const newLabelName = ref('')

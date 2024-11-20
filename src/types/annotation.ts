@@ -10,7 +10,7 @@ export interface Tool {
 export interface Annotation {
     id: string
     type: 'box' | 'polygon'
-    label: string
+    label: string[]
     points: Vector3[]
     x: number
     y: number
@@ -19,4 +19,9 @@ export interface Annotation {
     height: number,
     depth: number
     color: number
+}
+
+export interface File_Anno {
+    file:File
+    annotations: Annotation[]
 }

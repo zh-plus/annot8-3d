@@ -1,17 +1,25 @@
 import {defineStore} from 'pinia'
 import type {AnnotationState} from './types'
+import type {Box} from './types'
 import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
+import type {File_Anno} from '../types/annotation'
+import { useFileStore } from '@/stores/file';
 import * as THREE from "three";
 
 export const useAnnotationStore = defineStore('annotation', {
-    state: (): AnnotationState => ({
-        annotations: [],
-        selectedAnnotation: null,
+    state: () => ({
+        selectedAnnotation: null as string | null,
         isDrawing: false,
-        //add new
-        currentBox: null
-    }),
+        currentBox: null as Box|null,
+      }),
+    getters: {
+        // 动态获取当前文件的注解
+    annotations: () => {
+        const fileStore = useFileStore();
+        return fileStore.selectedFile?.annotations || [];
+      },
+    },
     actions: {
         addAnnotation(annotation: {
             x: number;
@@ -24,7 +32,7 @@ export const useAnnotationStore = defineStore('annotation', {
         }) {
             const newBBAnnotation: Omit<Annotation, 'id'> = {
                 type: 'box',  // 指定类型为方框
-                label: 'Car', // 这里可以设定一个默认的标签
+                label: ['Car'], // 这里可以设定一个默认的标签
                 points: [],   // 假设没有points
                 x: annotation.x,
                 y: annotation.y,
@@ -38,7 +46,7 @@ export const useAnnotationStore = defineStore('annotation', {
                 id: uuidv4(),
                 ...newBBAnnotation
             })
-            console.log("new annotation added:", annotation)
+            console.log("new annotation added:", this.annotations)
         },
         CreatBBox(intersects: THREE.Intersection[], label: string, width: number, height: number, depth: number) {
             // 创建边界框
@@ -99,7 +107,32 @@ export const useAnnotationStore = defineStore('annotation', {
             };
             return boundingBox;
         },
-        removeAnnotation(id: string) {
+        CreatBBox_byPositoin(x:number,y:number,z:number,label: string, width: number, height: number, depth: number){
+            // 创建边界框
+            const geometry = new THREE.BoxGeometry(width, height, depth)
+            const edges = new THREE.EdgesGeometry(geometry)
+            let color = 0xffffff
+            // 与label tool关联后需要修改
+            switch (label) {
+                case 'Car':
+                    color = 0x00ff00;
+                    break;
+                case 'Pedestrian':
+                    color = 0xff0000;
+                    break;
+                case 'Cyclist':
+                    color = 0x0000ff;
+                    break;
+                case 'Traffic Sign':
+                    color = 0xffff00;
+                    break;
+            }
+            const material = new THREE.LineBasicMaterial({color: color})
+            const boundingBox = new THREE.LineSegments(edges, material)
+            boundingBox.position.set(x, y, z)
+            return boundingBox
+        },
+        removeAnnotation(id: string ) {
             const index = this.annotations.findIndex(a => a.id === id)
             if (index !== -1) {
                 this.annotations.splice(index, 1)
@@ -114,7 +147,13 @@ export const useAnnotationStore = defineStore('annotation', {
         },
 
         selectAnnotation(id: string | null) {
+            if(this.selectedAnnotation!= null && this.selectedAnnotation.valueOf() === id){
+                this.selectedAnnotation = null
+            }
+            else{
+            console.log(id)
             this.selectedAnnotation = id
+            }
         },
         setCurrentBox(box: { x: number, y: number, z: number, width: number, height: number, depth: number }) {
             this.currentBox = box

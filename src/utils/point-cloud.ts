@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type {Point, PointCloudChunk} from '@/types/point-cloud';
 import {VIEWER_DEFAULTS} from '@/constants'
+import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 // Generate dummy point cloud data for testing
 export function generateDummyPointCloud(pointCount: number = VIEWER_DEFAULTS.pointBudget / 10): PointCloudChunk {
@@ -78,3 +80,45 @@ export function createPointCloudMaterial(pointSize: number = 1): THREE.PointsMat
         opacity: 0.8
     });
 }
+
+export function loadPointCloudFromPCD(filePath: string,scene: any) {
+    const loader = new PCDLoader();
+    // const bounds = {
+    //     min: [Infinity, Infinity, Infinity] as [number, number, number],
+    //     max: [-Infinity, -Infinity, -Infinity] as [number, number, number]
+    // };
+    // 加载点云模型
+    loader.load(filePath, function (points) {
+        
+        // 将点云几何居中并绕X轴旋转180度
+        // points.geometry.center();
+        // 旋转
+         points.geometry.rotateX(-Math.PI/2);
+        // 创建点云材质
+        const material = new THREE.PointsMaterial({ size: 0.08, vertexColors: true });
+        
+        //改变颜色
+        const colors = [];
+        const numPoints = points.geometry.attributes.position.count;
+        for (let i = 0; i < numPoints; i++) {
+            // Generate a random color or a specific color pattern
+            const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+            colors.push(color.r, color.g, color.b); // Add color values to the array
+        }
+        points.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        // 创建点云对象
+        const pointCloud = new THREE.Points(points.geometry, material);
+        scene.add(pointCloud);
+    })
+}
+
+
+export function loadPointCloudFromOBJ(filePath: string,scene: any) {
+    const loader = new OBJLoader();
+
+    // 加载点云模型
+    loader.load(filePath, function (obj) {
+        scene.add(obj);
+    })
+}
+

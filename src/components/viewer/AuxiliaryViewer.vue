@@ -33,7 +33,7 @@ useViewer({
   cameraPosition: props.cameraPosition,
   onInit: (context) => {
     viewerContext.value = context
-    setupScene(viewerContext.value)
+    setupScene(viewerContext.value,'None')
     // View-specific configurations
     switch (props.label) {
       case 'Overhead View': {
