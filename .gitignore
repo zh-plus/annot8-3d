@@ -28,3 +28,9 @@ dist-ssr
 /vite.config.js
 /vitest.setup.d.ts
 /vitest.setup.js
+
+# hidden files from MacOS
+.AppleDouble
+.DS_Store
+.LSOverride
+__MACOSX

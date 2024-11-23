@@ -1,0 +1,487 @@
+openapi: 3.0.1
+info:
+  description: A JWT-Protected API for 3D Object Annotation
+  title: 3D Annotation API with JWT
+  version: 1.0.0
+servers:
+- url: /
+
+paths:
+  /login:
+    post:
+      operationId: login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: Successfully authenticated
+        "401":
+          description: Unauthorized
+        "404":
+          description: Unauthorized
+      summary: Authenticate and get a JWT token
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+
+  /register:
+    post:
+      operationId: register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Registration failed
+      summary: Register a new user
+      x-openapi-router-controller: openapi_server.controllers.default_controller
+      
+  /projects:
+    get:
+      operationId: get_projects
+      responses:
+        "200":
+          description: List of user projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      summary: Get a list of user projects
+      x-openapi-router-controller: openapi_server.controllers.project_controller
+
+    post:
+      operationId: create_project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+        required: true
+      responses:
+        "201":
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      summary: Create a new project
+      x-openapi-router-controller: openapi_server.controllers.project_controller
+
+  /projects/{project_id}/annotations:
+    get:
+      operationId: get_annotations
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of annotations for the specified project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Annotation'
+        "401":
+          description: Unauthorized - missing or invalid JWT
+        "404":
+          description: Project not found
+      security:
+        - BearerAuth: []
+      summary: Get annotations for a project
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /projects/upload_pcd:
+    post:
+      summary: Upload a .pcd file for a specific project
+      operationId: upload_pcd
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  description: The ID of the project
+                pcd_file:
+                  type: string
+                  format: binary
+                  description: The .pcd file to be uploaded
+      responses:
+        "200":
+          description: File uploaded successfully
+        "400":
+          description: Bad request - invalid file format or missing project ID
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.project_controller
+
+  /projects/pcd_files:
+    post:
+      summary: List all .pcd files for a specific project
+      operationId: list_pcd_files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_id:
+                  type: integer
+                  description: The ID of the project
+      responses:
+        "200":
+          description: List of .pcd files for the project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PCDFile'
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.project_controller
+
+  /annotations/create:
+    post:
+      summary: Create a new annotation for a specific .pcd file in a project
+      operationId: create_annotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationRequest'
+      responses:
+        "201":
+          description: Annotation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /annotations:
+    post:
+      summary: List all annotations for a specific .pcd file
+      operationId: list_annotations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pcd_file_id:
+                  type: integer
+                  description: The ID of the .pcd file
+      responses:
+        "200":
+          description: List of annotations for the .pcd file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Annotation'
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /annotations/update:
+    post:
+      summary: Update a specific annotation
+      operationId: update_annotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationUpdateRequest'
+      responses:
+        "200":
+          description: Annotation updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /annotations/delete:
+    post:
+      summary: Delete a specific annotation
+      operationId: delete_annotation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                annotation_id:
+                  type: integer
+                  description: The ID of the annotation to be deleted
+      responses:
+        "200":
+          description: Annotation deleted successfully
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+        - BearerAuth: []
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+components:
+  schemas:
+    RegisterRequest:
+      example:
+        password: password
+        username: username
+      properties:
+        username:
+          title: username
+          type: string
+        password:
+          description: a password field
+          format: password
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: RegisterRequest
+      type: object
+
+    LoginRequest:
+      example:
+        password: password
+        username: username
+      properties:
+        username:
+          title: username
+          type: string
+        password:
+          description: a password field
+          format: password
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: LoginRequest
+      type: object
+
+    LoginResponse:
+      example:
+        token: token
+      properties:
+        token:
+          description: JWT token passed back to the client
+          title: token
+          type: string
+      title: LoginResponse
+      type: object
+
+    Project:
+      example:
+        id: 1
+        name: "Building Facade"
+        description: "Annotations for building facade images"
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the project
+        name:
+          type: string
+          description: Name of the project
+        description:
+          type: string
+          description: Description of the project
+      title: Project
+      type: object
+
+    ProjectRequest:
+      example:
+        name: "Building Facade"
+        description: "Annotations for building facade images"
+      properties:
+        name:
+          type: string
+          description: Name of the project
+        description:
+          type: string
+          description: Description of the project
+      required:
+      - name
+      title: ProjectRequest
+      type: object
+
+    PCDFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the .pcd file
+        file_name:
+          type: string
+          description: Name of the .pcd file
+      required:
+        - id
+        - file_name
+      example:
+        id: 1
+        file_name: "file1.pcd"
+
+    AnnotationRequest:
+      type: object
+      properties:
+        pcd_file_id:
+          type: integer
+          description: The ID of the .pcd file to annotate
+        label:
+          type: string
+          description: Label for the annotated object
+        geometry:
+          type: string
+          enum: [sphere, cube, polygon]
+          description: The shape of the bounding box
+        size:
+          type: object
+          properties:
+            radius:
+              type: number
+              description: Radius (if the geometry is a sphere)
+            width:
+              type: number
+              description: Width (if applicable)
+            height:
+              type: number
+              description: Height (if applicable)
+        position:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+            z:
+              type: number
+        rotation:
+          type: object
+          properties:
+            x:
+              type: number
+            y:
+              type: number
+            z:
+              type: number
+      required:
+        - pcd_file_id
+        - label
+        - geometry
+        - position
+      example:
+        pcd_file_id: 1
+        label: "Car"
+        geometry: "cube"
+        size:
+          width: 2.5
+          height: 1.5
+        position:
+          x: 10.0
+          y: 5.0
+          z: 2.0
+        rotation:
+          x: 0.0
+          y: 45.0
+          z: 0.0
+
+    Annotation:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the annotation
+        pcd_file_id:
+          type: integer
+          description: The ID of the .pcd file
+        label:
+          type: string
+          description: Label for the annotated object
+        geometry:
+          type: string
+          enum: [sphere, cube, polygon]
+          description: The shape of the bounding box
+        size:
+          type: object
+        position:
+          type: object
+        rotation:
+          type: object
+      required:
+        - id
+        - label
+        - geometry
+
+    AnnotationUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/AnnotationRequest'
+      properties:
+        annotation_id:
+          type: integer
+          description: The ID of the annotation to update
+      required:
+        - annotation_id
+
+  securitySchemes:
+    BearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+      x-bearerInfoFunc: openapi_server.controllers.security_controller.info_from_BearerAuth
