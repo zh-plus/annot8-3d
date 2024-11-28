@@ -9,12 +9,11 @@
         v-if="viewerContext"
         :viewerContext="viewerContext"
         @isDrag="handleIsDrag"/>
-    <FileChoose v-if="viewerContext":viewerContext="viewerContext" />
-    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import {ref, watchEffect,watch} from 'vue'
+import {ref, watchEffect} from 'vue'
 import * as THREE from 'three'
 import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
@@ -23,10 +22,6 @@ import {CAMERA_POSITIONS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
-import FileChoose from "@/components/toolbar/FileChoose.vue";
-import {useFileStore} from '@/stores/file.ts'
-import {clearScene} from '@/utils/scene-manager'
-
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -56,10 +51,6 @@ const handleIsDrag = (newStatus: boolean | undefined) => {
     console.log('Drag status is undefined')
   }
 }
-
-const fileStore = useFileStore();
-const { selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
-
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -112,7 +103,7 @@ useViewer({
     console.log('viewerContext initialized:', context)  // 调试输出
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
-    setupScene(viewerContext.value,'None')
+    setupScene(viewerContext.value)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
@@ -137,15 +128,6 @@ useViewer({
     }
   }
 })
-
-// 响应selectfile的更新
-watch(selectedFile, (newFile, oldFile) => {
-  if (newFile !== oldFile && viewerContext.value && newFile !== null) {
-    clearScene(viewerContext.value.scene);
-    console.log("Selected file changed:", newFile);
-    setupScene(viewerContext.value, newFile.file.name); // Call setupScene with updated selectedFile
-  }
-});
 
 // watcher 用于确保组件每次更新时，响应式的 viewerContext 被正确传递到子组件
 watchEffect(() => {

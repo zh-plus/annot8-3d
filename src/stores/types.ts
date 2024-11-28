@@ -38,10 +38,8 @@ export interface AnnotationState {
     annotations: Annotation[]
     selectedAnnotation: string | null
     isDrawing: boolean
-
     //add new
     currentBox: { x: number, y: number, z: number, width: number, height: number, depth: number } | null
-    draggingAnnotation: boolean
 }
 
 export interface Box {

@@ -13,9 +13,9 @@ export function generateDummyPointCloud(pointCount: number = VIEWER_DEFAULTS.poi
     };
 
     for (let i = 0; i < pointCount; i++) {
-        const x = (Math.random() - 0.5) * 1;
-        const y = (Math.random() - 0.5) * 1;
-        const z = (Math.random() - 0.5) * 1;
+        const x = (Math.random() - 0.5);
+        const y = (Math.random() - 0.5);
+        const z = (Math.random() - 0.5);
 
         // Update bounds
         bounds.min[0] = Math.min(bounds.min[0], x);
