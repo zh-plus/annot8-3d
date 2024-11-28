@@ -81,6 +81,16 @@ const deleteAnnotation = (annotation: any) => {
 </script>
 
 <style scoped>
+.file-list {
+  overflow-y: auto; /* 启用垂直滚动条 */
+  max-height: 200px; /* 限制高度，确保不会超出视口 */
+  border-right: 1px solid #e0e0e0; /* 可选：添加分隔线 */
+}
+
+.annotation-results {
+  overflow-y: auto; /* 启用垂直滚动条 */
+  max-height: calc(100vh - 64px); /* 根据需要调整最大高度 */
+}
 .custom-item {
   background-color: #f5f5f5; /* 默认背景颜色 */
 }

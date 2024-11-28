@@ -41,8 +41,12 @@ export function setupScene(viewerContext: ViewerContext,path:string) {
 }
 
 export function clearScene(scene: THREE.Scene) {
-    while (scene.children.length > 0) {
-      const child = scene.children[0];
+  for (let i = scene.children.length - 1; i >= 0; i--) {
+    const child = scene.children[i];
+    // 检查是否是网格平面或坐标轴
+    if (child instanceof THREE.GridHelper || child instanceof THREE.AxesHelper) {
+      continue; // 跳过，不删除
+    }
       if (child instanceof THREE.Mesh) {
         // 释放几何体和材质资源
         child.geometry.dispose();

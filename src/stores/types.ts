@@ -1,6 +1,7 @@
 import type {Annotation, Label, PointCloudChunk, PointCloudMetadata, Tool} from '@/types'
 import type {Vector3} from 'three'
 import type {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js'
+import * as THREE from "three";
 
 export interface CameraState {
     position: Vector3

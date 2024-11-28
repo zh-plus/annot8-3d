@@ -2,6 +2,7 @@ import {defineStore,storeToRefs} from 'pinia'
 import type {LabelState} from './types'
 import { useAnnotationStore } from './annotation'
 import {v4 as uuidv4} from 'uuid'
+import * as fs from 'fs';
 
 export const useLabelStore = defineStore('labels', {
     state: (): LabelState => ({
@@ -48,6 +49,16 @@ export const useLabelStore = defineStore('labels', {
                 annotations.value[index].label = this.selectedLabels.map(l => l.name)
             }
             }
-        }
+        },
+        //保存label
+        saveLabelsToFile() {
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join('src/assets/Dataset/ds0', 'labels.json');
+          
+            // 写入文件
+            fs.writeFileSync(filePath, JSON.stringify(this.labels, null, 2), 'utf8');
+            console.log(`Labels saved to ${filePath}`);
+          }
     }
 })

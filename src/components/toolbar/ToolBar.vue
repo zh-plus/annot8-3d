@@ -38,14 +38,28 @@
 </template>
 
 <script lang="ts" setup>
-import {useToolStore, useViewportStore} from '@/stores'
+import {useToolStore, useViewportStore,useLabelStore} from '@/stores'
 import {storeToRefs} from 'pinia'
+import {  watch } from 'vue';
 
 const toolStore = useToolStore()
 const {tools} = storeToRefs(toolStore)
 const {selectTool} = toolStore
+const {selectedTool}=storeToRefs(toolStore)
+
+const labelStore = useLabelStore()
 
 const viewportStore = useViewportStore()
 const {syncEnabled} = storeToRefs(viewportStore)
 const {toggleSync} = viewportStore
+
+
+watch(selectedTool, (newTool) => {
+  if (newTool && newTool === 'save') {
+    console.log('choose save')
+      labelStore.saveLabelsToFile() 
+  }
+});
+
+
 </script>

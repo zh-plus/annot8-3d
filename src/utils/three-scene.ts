@@ -30,7 +30,7 @@ export function initializeScene(
     const controls = new OrbitControls(camera, canvas)
     Object.assign(controls, CONTROLS, VIEWER_CONSTRAINTS)
 
-    const gridHelper = new THREE.GridHelper(10, 10, THREE_SCENE_COLORS.grid, THREE_SCENE_COLORS.grid)
+    const gridHelper = new THREE.GridHelper(500, 500, THREE_SCENE_COLORS.grid, THREE_SCENE_COLORS.grid)
     scene.add(gridHelper)
 
     const axesHelper = new THREE.AxesHelper(5)

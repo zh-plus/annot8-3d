@@ -66,8 +66,9 @@ import LabelController from '@/components/label/LabelController.vue'
 const viewportStore = useViewportStore()
 const {lgAndUp, mdAndDown} = useDisplay()
 
+// 暂时不考虑显示图片的功能
 const imageSrc = ref<string | null>(null);
-imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
+// imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
 
 </script>
 
@@ -104,7 +105,7 @@ imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_ca
   position: absolute; /* Place it relative to .main-section */
   top: 10px; /* Adjust as needed for spacing from the top */
   left: 10px; /* Adjust as needed for spacing from the left */
-  width: 300px; /* Set a fixed width for the label editor */
+  width: 400px; /* Set a fixed width for the label editor */
   height: auto; /* Adjust height as needed */
   background-color: white; /* Add a background to distinguish it */
   border: 1px solid var(--border-color); /* Optional: Add a border */
