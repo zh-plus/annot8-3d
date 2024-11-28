@@ -11,8 +11,15 @@ export const useRaycaster = (viewerContext: any) => {
         if (!canvas || !camera) return []
 
         const rect = canvas.getBoundingClientRect()
-        mouse.x = (event.clientX - rect.left) / rect.width * 2 - 1
-        mouse.y = -(event.clientY - rect.top) / rect.height * 2 + 1
+
+        const normalizedX = (event.clientX - rect.left) / rect.width
+        const normalizedY = (event.clientY - rect.top) / rect.height
+
+        const viewportX = normalizedX / (window.innerWidth * 0.73 / rect.width) * 2 - 1
+        const viewportY = -normalizedY * 2 + 1
+
+        mouse.x = viewportX
+        mouse.y = viewportY
 
         raycaster.setFromCamera(mouse, camera)
 

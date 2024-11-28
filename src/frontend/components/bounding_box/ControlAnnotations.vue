@@ -6,8 +6,6 @@ import type {ViewerContext} from "@/types";
 import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
-import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
-import {useFileStore} from '@/stores/file'
 
 const props = defineProps({
   viewerContext: {
@@ -23,11 +21,6 @@ nextTick(() => {
     emit('isDrag', isDrag())
   })
 })
-
-const toolStore = useToolStore(); // 获取 store 实例
-const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
-const fileStore = useFileStore();
-const {selectedFile} = storeToRefs(fileStore);
 
 const annotationStore = useAnnotationStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
@@ -109,7 +102,6 @@ const ClickBBox = (event: MouseEvent): void => {
   if (intersectedBox) {
     const {x, y, z} = intersectedBox.object.position
     // 查找与该位置匹配的 annotation
-    
     const annotation = annotationStore.annotations.find((annotation) => {
       const epsilon_x = annotation.width * 0.6
       const epsilon_y = annotation.height * 0.6;
@@ -167,9 +159,7 @@ const build_BBox = (event: MouseEvent): void => {
     // 创建方块
     const BBox = annotationStore.CreatBBox(intersects, "Car", 2, 1, 2)
     // 将边界框添加到场景中
-    if (BBox != null) {
-      scene.add(BBox)
-    }
+    scene.add(BBox)
   }
 }
 
@@ -298,7 +288,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- 控制面板 -->
   <div
-      v-if="showControlPanel && annotationStore.currentBox && selectedTool === 'box'"
+      v-if="showControlPanel && annotationStore.currentBox"
       class="control-panel"
       style="position: absolute; top: 10px; left: 10px; z-index: 10;"
   >
@@ -354,22 +344,22 @@ onBeforeUnmount(() => {
         <v-slider
             v-model="annotationStore.currentBox.x"
             label="X Position"
-            min="-10"
-            max="10"
+            min="-100"
+            max="100"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.y"
             label="Y Position"
-            min="-10"
-            max="10"
+            min="-100"
+            max="100"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.z"
             label="Z Position"
-            min="-10"
-            max="10"
+            min="-100"
+            max="100"
             step="0.1"
         />
         <v-text-field

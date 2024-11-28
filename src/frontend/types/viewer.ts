@@ -5,8 +5,14 @@ import {CameraPosition} from "@/types/controls.ts";
 export interface ViewerContext {
     scene: Scene
     camera: PerspectiveCamera
+    camera_side: PerspectiveCamera
+    camera_head: PerspectiveCamera
+    camera_rear: PerspectiveCamera
     renderer: WebGLRenderer
     controls: OrbitControls
+    controls_side: OrbitControls
+    controls_head: OrbitControls
+    controls_rear: OrbitControls
 }
 
 export interface BaseViewerProps {

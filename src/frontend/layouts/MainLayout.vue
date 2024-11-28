@@ -2,48 +2,20 @@
   <v-app class="fill-height">
     <v-main class="fill-height pa-0">
       <div class="layout-grid">
-        <!-- Image Display Section -->
-        <div class="image-display">
-          <img :src="imageSrc" alt="Selected Image" class="image" v-if="imageSrc" />
-        </div>
         <!-- Toolbar -->
         <tool-bar/>
 
         <!-- Main View -->
+
         <div class="main-section">
           <main-viewer/>
-          <!-- Label controller-->
-        <div class="label-controller">
-          <label-controller/>
         </div>
-
+        <div id="sideLabel" style="position: absolute; top: 2%; left: 74%; color: white; font-size: 14px;">Side View
         </div>
-
-        <!-- Side Views and Label Editor Container -->
-        <div class="side-section">
-          <!-- Side Views -->
-          <div class="side-views">
-            <div class="auxiliary-view-container">
-              <auxiliary-viewer
-                  :camera-position="viewportStore.cameraPositions.overhead"
-                  label="Overhead View"
-              />
-            </div>
-            <div class="auxiliary-view-container">
-              <auxiliary-viewer
-                  :camera-position="viewportStore.cameraPositions.side"
-                  label="Side View"
-              />
-            </div>
-            <div class="auxiliary-view-container">
-              <auxiliary-viewer
-                  :camera-position="viewportStore.cameraPositions.rear"
-                  label="Rear View"
-              />
-            </div>
-          </div>
+        <div id="headLabel" style="position: absolute; top: 35%; left: 74%; color: white; font-size: 14px;">Head View
         </div>
-        <!-- Label Editor -->
+        <div id="rearLabel" style="position: absolute; top: 68%; left: 74%; color: white; font-size: 14px;">Rear View
+        </div>
         <div class="label-editor">
           <label-editor/>
         </div>
@@ -54,64 +26,27 @@
 
 <script lang="ts" setup>
 import {useDisplay} from 'vuetify'
-import {ref} from 'vue'
 import ToolBar from '@/components/toolbar/ToolBar.vue'
 import MainViewer from '@/components/viewer/MainViewer.vue'
 import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
 import {useViewportStore} from '@/stores'
 import {UI_COLORS} from "@/constants" // Used in <style> v-bind
-import LabelController from '@/components/label/LabelController.vue'
 
 const viewportStore = useViewportStore()
 const {lgAndUp, mdAndDown} = useDisplay()
-
-const imageSrc = ref<string | null>(null);
-imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_camera_basler_16mm/1688625741_452205488_vehicle_camera_basler_16mm.jpg"; 
-
 </script>
 
 <style scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: calc(100% - var(--side-view-width) - var(--label-editor-width)) var(--side-view-width) var(--label-editor-width);
-  grid-template-areas: "main side label-edit";
+  grid-template-columns: calc(100% - var(--label-editor-width)) var(--label-editor-width);
+  grid-template-areas: "main label-edit";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   position: relative;
   margin-left: var(--toolbar-width);
-}
-
-.image-display {
-  position: absolute;
-  bottom: 10px; /* 调整图像到左上角的距离 */
-  left: 10px;
-  z-index: 1; /* 确保图像在其他元素上方 */
-  background: rgba(0, 0, 0, 0.6); /* 可选：添加背景遮罩 */
-  padding: 5px; /* 可选：内边距 */
-  border-radius: 8px; /* 可选：圆角效果 */
-}
-
-.image {
-  max-width: 400px; /* 限制图像宽度 */
-  max-height: 250px; /* 限制图像高度 */
-  object-fit: contain; /* 保持图像比例 */
-  border: 1px solid var(--border-color); /* 可选：添加边框 */
-}
-
-.label-controller {
-  position: absolute; /* Place it relative to .main-section */
-  top: 10px; /* Adjust as needed for spacing from the top */
-  left: 10px; /* Adjust as needed for spacing from the left */
-  width: 300px; /* Set a fixed width for the label editor */
-  height: auto; /* Adjust height as needed */
-  background-color: white; /* Add a background to distinguish it */
-  border: 1px solid var(--border-color); /* Optional: Add a border */
-  z-index: 10; /* Ensure it is on top of other elements */
-  padding: 16px; /* Optional: Add some internal padding */
-  border-radius: 8px; /* Optional: Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
 }
 
 .main-section {
@@ -125,32 +60,8 @@ imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_ca
   /* Remove margin */
 }
 
-.side-section {
-  grid-area: side;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border-left: 1px solid var(--border-color);
-  background-color: v-bind('UI_COLORS.surface');
-}
-
-.side-views {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
-}
-
-.auxiliary-view-container {
-  flex: 1;
-  border-bottom: 1px solid v-bind('UI_COLORS.border');
-  aspect-ratio: var(--aspect-ratio);
-}
-
-.auxiliary-view-container:last-child {
-  border-bottom: none;
-}
-
 .label-editor {
+  width: var(--label-editor-width);
   grid-area: label-edit;
   flex: 1;
   border-left: 1px solid var(--border-color);
@@ -159,7 +70,7 @@ imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_ca
 /* Responsive layouts */
 @media (max-width: 1280px) {
   .layout-grid {
-    grid-template-columns: calc(100% - var(--side-view-width)) var(--side-view-width);
+    grid-template-columns: calc(100%);
     grid-template-areas: "main side";
   }
 
@@ -183,27 +94,10 @@ imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_ca
 @media (max-width: 960px) {
   .layout-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: 2fr 1fr;
+    grid-template-rows: 1fr;
     grid-template-areas:
-      "main"
-      "side";
+      "main";
     margin-left: var(--toolbar-width);
-  }
-
-  .side-section {
-    border-left: none;
-    border-top: 1px solid var(--border-color);
-    flex-direction: row;
-  }
-
-  .side-views {
-    flex-direction: row;
-    flex: 3;
-  }
-
-  .auxiliary-view-container {
-    border-bottom: none;
-    border-right: 1px solid var(--border-color);
   }
 }
 
@@ -213,12 +107,7 @@ imageSrc.value = "src/assets/PCD_cloud/drive_33_north_to_south/images/vehicle_ca
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "toolbar"
-      "main"
-      "side";
-  }
-
-  .side-section {
-    height: 300px;
+      "main";
   }
 }
 </style>

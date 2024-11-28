@@ -9,12 +9,12 @@
         v-if="viewerContext"
         :viewerContext="viewerContext"
         @isDrag="handleIsDrag"/>
-    <FileChoose v-if="viewerContext":viewerContext="viewerContext" />
-    </div>
+    <FileChoose v-if="viewerContext" :viewerContext="viewerContext"/>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import {ref, watchEffect,watch} from 'vue'
+import {ref, watchEffect, watch} from 'vue'
 import * as THREE from 'three'
 import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
@@ -49,7 +49,7 @@ const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 const dragStatus = ref(false)
 const handleIsDrag = (newStatus: boolean | undefined) => {
-    if (newStatus !== undefined) {
+  if (newStatus !== undefined) {
     dragStatus.value = newStatus
     console.log('Dragging is checked by MainViewer:', dragStatus.value)
   } else {
@@ -58,7 +58,7 @@ const handleIsDrag = (newStatus: boolean | undefined) => {
 }
 
 const fileStore = useFileStore();
-const { selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
+const {selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
 
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
@@ -82,11 +82,17 @@ const onPointerMove = (event: PointerEvent) => {
     event.stopPropagation() // 阻止事件传播
     if (viewerContext.value) {
       viewerContext.value.controls.enabled = false;
+      viewerContext.value.controls_side.enabled = false;
+      viewerContext.value.controls_head.enabled = false;
+      viewerContext.value.controls_rear.enabled = false;
     }
     return
   }
   if (viewerContext.value) {
     viewerContext.value.controls.enabled = true;
+    viewerContext.value.controls_side.enabled = true;
+    viewerContext.value.controls_head.enabled = true;
+    viewerContext.value.controls_rear.enabled = true;
   }
   console.log("Shouldn't run to this")
   const rect = canvasRef.value!.getBoundingClientRect()
@@ -112,7 +118,7 @@ useViewer({
     console.log('viewerContext initialized:', context)  // 调试输出
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
-    setupScene(viewerContext.value,'None')
+    setupScene(viewerContext.value, 'None')
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
