@@ -28,12 +28,12 @@ export function useViewer(options: UseViewerOptions) {
         containerRef,
         canvasRef,
         cameraPosition,
-        onInit,
-        onAnimate,
+        onInit, //onInit：初始化时调用的回调。
+        onAnimate, //onAnimate：每帧更新时调用的回调。
         onResize,
-        onUnmount,
+        onUnmount,//onUnmount：组件卸载时调用的回调。
         constraints,
-        controlsConfig
+        controlsConfig //controlsConfig：用于设置控制器（如相机控制）。
     } = options
 
     const viewportStore = useViewportStore()
@@ -51,8 +51,9 @@ export function useViewer(options: UseViewerOptions) {
         )
 
         // Apply control settings
+        // 这行代码用于应用默认控制器配置并结合 controlsConfig（如果有的话）进行调整。
         Object.assign(viewerContext.controls, CONTROLS, controlsConfig || {})
-
+        // 控制器（controls）用于操作场景视角的交互（如鼠标拖动进行旋转等）
         viewerContext.controls.minDistance = constraints?.minDistance || VIEWER_CONSTRAINTS.minDistance
         viewerContext.controls.maxDistance = constraints?.maxDistance || VIEWER_CONSTRAINTS.maxDistance
 
@@ -86,9 +87,10 @@ export function useViewer(options: UseViewerOptions) {
         onAnimate?.(viewerContext)
 
         // Render the scene
+        // 每一帧都会更新控制器，并渲染场景
         viewerContext.renderer.render(viewerContext.scene, viewerContext.camera)
     }
-
+    // 窗口大小变化时重新计算视口，并调整相机的纵横比以及渲染器的尺寸。
     const handleResize = () => {
         if (!containerRef.value || !viewerContext) return
 
@@ -117,6 +119,5 @@ export function useViewer(options: UseViewerOptions) {
         cleanupViewer(viewerContext)
         onUnmount?.(viewerContext)
     })
-
     return {viewerContext: viewerContext!}
 }

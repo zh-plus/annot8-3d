@@ -5,36 +5,35 @@
     <div v-if="selectedTool" class="tool-indicator">
       Active Tool: {{ selectedTool.name }}
     </div>
-    <ControlAnnotations
-        v-if="viewerContext"
-        :viewerContext="viewerContext"
-        @isDrag="handleIsDrag"/>
+    <ControlAnnotations v-if="viewerContext" :viewerContext="viewerContext"/>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {ref, watchEffect} from 'vue'
 import * as THREE from 'three'
-import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
+import {useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
-import {CAMERA_POSITIONS} from '@/constants'
+import {CAMERA_POSITIONS, CONTROLS, VIEWER_CONSTRAINTS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
+
+const props = defineProps<{
+  label: string
+  cameraPosition: { x: number; y: number; z: number }
+}>()
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const viewportStore = useViewportStore()
-const annotationStore = useAnnotationStore()
+const viewerId = props.label.toLowerCase().replace(' view', '').replace(' ', '-')
+
 //selectedTool 是从 toolStore 获取的当前选中的工具，它会动态显示在视图中。
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
-
-// 创建响应式 viewerContext
-const viewerContext = ref<ViewerContext | null>(null)
-// 使用 useViewer 获取并初始化 viewerContext
 
 // Interaction state
 //isDrawing：一个布尔值，表示是否正在进行绘制操作。用来判断用户是否在绘制边界框。
@@ -42,15 +41,7 @@ const isDrawing = ref(false)
 //startPoint 和 currentPoint：THREE.Vector2 类型，用于存储指针的初始位置和当前鼠标位置。
 const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
-const dragStatus = ref(false)
-const handleIsDrag = (newStatus: boolean | undefined) => {
-    if (newStatus !== undefined) {
-    dragStatus.value = newStatus
-    console.log('Dragging is checked by MainViewer:', dragStatus.value)
-  } else {
-    console.log('Drag status is undefined')
-  }
-}
+
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -67,19 +58,7 @@ const onPointerDown = (event: PointerEvent) => {
 //鼠标移动事件
 const onPointerMove = (event: PointerEvent) => {
   if (!isDrawing.value || !selectedTool.value) return
-  if (dragStatus && annotationStore.isDrawing) {
-    console.log("Should not move")
-    event.preventDefault()  // 阻止默认行为
-    event.stopPropagation() // 阻止事件传播
-    if (viewerContext.value) {
-      viewerContext.value.controls.enabled = false;
-    }
-    return
-  }
-  if (viewerContext.value) {
-    viewerContext.value.controls.enabled = true;
-  }
-  console.log("Shouldn't run to this")
+
   const rect = canvasRef.value!.getBoundingClientRect()
   currentPoint.set(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -93,16 +72,19 @@ const onPointerUp = () => {
   isDrawing.value = false
 }
 
+// 创建响应式 viewerContext
+const viewerContext = ref<ViewerContext | null>(null)
+// 使用 useViewer 获取并初始化 viewerContext
 
 useViewer({
-  viewerId: 'main',
+  viewerId,
   containerRef,
   canvasRef,
-  cameraPosition: CAMERA_POSITIONS.main,
+  cameraPosition: props.cameraPosition,
   onInit: (context) => {
     console.log('viewerContext initialized:', context)  // 调试输出
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
-    // Generate dummy point cloud / Load point cloud here
+
     setupScene(viewerContext.value)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
@@ -115,6 +97,62 @@ useViewer({
         viewportStore.updateMainCameraState(viewerContext.value.camera, viewerContext.value.controls)
       }
     })
+
+    // View-specific configurations
+    switch (props.label) {
+      case 'Main View': {
+        const {x, y, z} = CAMERA_POSITIONS.main
+        viewerContext.value.camera.position.set(x, y, z)
+        Object.assign(viewerContext.value.controls, {
+          minAzimuthAngle: Math.PI,
+          maxAzimuthAngle: Math.PI,
+          enableRotate: true
+        })
+        break
+      }
+      case 'Overhead View': {
+        const {x, y, z} = CAMERA_POSITIONS.overhead
+        viewerContext.value.camera.position.set(x, y, z)
+        //viewerContext.value.camera.up.set(0, 1, 0)
+        Object.assign(viewerContext.value.controls, {
+          minPolarAngle: 0,
+          maxPolarAngle: 0,
+          enableRotate: false
+        })
+        break
+      }
+      case 'Side View': {
+        const {x, y, z} = CAMERA_POSITIONS.side
+        viewerContext.value.camera.position.set(x, y, z)
+        Object.assign(viewerContext.value.controls, {
+          minAzimuthAngle: -Math.PI / 2,
+          maxAzimuthAngle: -Math.PI / 2,
+          enableRotate: false
+        })
+        break
+      }
+      case 'Rear View': {
+        const {x, y, z} = CAMERA_POSITIONS.rear
+        viewerContext.value.camera.position.set(x, y, z)
+        Object.assign(viewerContext.value.controls, {
+          minAzimuthAngle: Math.PI,
+          maxAzimuthAngle: Math.PI,
+          enableRotate: false
+        })
+        break
+      }
+    }
+
+    // Apply control settings
+    Object.assign(viewerContext.value.controls, {
+      enableDamping: CONTROLS.enableDamping,
+      dampingFactor: CONTROLS.dampingFactor,
+      screenSpacePanning: CONTROLS.screenSpacePanning,
+      enableZoom: CONTROLS.enableZoom,
+      minDistance: VIEWER_CONSTRAINTS.minDistance,
+      maxDistance: VIEWER_CONSTRAINTS.maxDistance
+    })
+    viewportStore.registerViewerControls(viewerId, viewerContext.value.controls)
   },
   onUnmount: (context) => {
     console.log('viewerContext unmounted:', context)  // 调试输出

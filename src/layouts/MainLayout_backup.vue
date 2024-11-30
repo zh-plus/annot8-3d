@@ -7,27 +7,30 @@
 
         <!-- Main View -->
         <div class="main-section">
-          <main-viewer/>
+          <main-viewer
+              :camera-position="viewportStore.cameraPositions.main"
+              label="Main View"
+          />
         </div>
 
         <!-- Side Views and Label Editor Container -->
         <div class="side-section">
           <!-- Side Views -->
           <div class="side-views">
-            <div class="auxiliary-view-container" v-if="sceneStore.scene">
-              <auxiliary-viewer
+            <div class="auxiliary-view-container">
+              <main-viewer
                   :camera-position="viewportStore.cameraPositions.overhead"
                   label="Overhead View"
               />
             </div>
-            <div class="auxiliary-view-container" v-if="sceneStore.scene">
-              <auxiliary-viewer
+            <div class="auxiliary-view-container">
+              <main-viewer
                   :camera-position="viewportStore.cameraPositions.side"
                   label="Side View"
               />
             </div>
-            <div class="auxiliary-view-container" v-if="sceneStore.scene">
-              <auxiliary-viewer
+            <div class="auxiliary-view-container">
+              <main-viewer
                   :camera-position="viewportStore.cameraPositions.rear"
                   label="Rear View"
               />
@@ -46,14 +49,12 @@
 <script lang="ts" setup>
 import {useDisplay} from 'vuetify'
 import ToolBar from '@/components/toolbar/ToolBar.vue'
-import MainViewer from '@/components/viewer/MainViewer.vue'
-import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
+import MainViewer from '@/components/viewer/MainViewer_backup.vue'
+// import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
 import {useViewportStore} from '@/stores'
-import { useSceneCamera } from '@/stores/scene_camera_control'
 import {UI_COLORS} from "@/constants" // Used in <style> v-bind
 
-const sceneStore = useSceneCamera() // 获取 scene 的 store 实例
 const viewportStore = useViewportStore()
 const {lgAndUp, mdAndDown} = useDisplay()
 </script>

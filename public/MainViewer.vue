@@ -5,17 +5,14 @@
     <div v-if="selectedTool" class="tool-indicator">
       Active Tool: {{ selectedTool.name }}
     </div>
-    <ControlAnnotations
-        v-if="viewerContext"
-        :viewerContext="viewerContext"
-        @isDrag="handleIsDrag"/>
+    <ControlAnnotations v-if="viewerContext" :viewerContext="viewerContext"/>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {ref, watchEffect} from 'vue'
 import * as THREE from 'three'
-import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
+import {useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS} from '@/constants'
@@ -27,14 +24,10 @@ import {ViewerContext} from "@/types";
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const viewportStore = useViewportStore()
-const annotationStore = useAnnotationStore()
+
 //selectedTool 是从 toolStore 获取的当前选中的工具，它会动态显示在视图中。
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
-
-// 创建响应式 viewerContext
-const viewerContext = ref<ViewerContext | null>(null)
-// 使用 useViewer 获取并初始化 viewerContext
 
 // Interaction state
 //isDrawing：一个布尔值，表示是否正在进行绘制操作。用来判断用户是否在绘制边界框。
@@ -42,15 +35,7 @@ const isDrawing = ref(false)
 //startPoint 和 currentPoint：THREE.Vector2 类型，用于存储指针的初始位置和当前鼠标位置。
 const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
-const dragStatus = ref(false)
-const handleIsDrag = (newStatus: boolean | undefined) => {
-    if (newStatus !== undefined) {
-    dragStatus.value = newStatus
-    console.log('Dragging is checked by MainViewer:', dragStatus.value)
-  } else {
-    console.log('Drag status is undefined')
-  }
-}
+
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -67,19 +52,7 @@ const onPointerDown = (event: PointerEvent) => {
 //鼠标移动事件
 const onPointerMove = (event: PointerEvent) => {
   if (!isDrawing.value || !selectedTool.value) return
-  if (dragStatus && annotationStore.isDrawing) {
-    console.log("Should not move")
-    event.preventDefault()  // 阻止默认行为
-    event.stopPropagation() // 阻止事件传播
-    if (viewerContext.value) {
-      viewerContext.value.controls.enabled = false;
-    }
-    return
-  }
-  if (viewerContext.value) {
-    viewerContext.value.controls.enabled = true;
-  }
-  console.log("Shouldn't run to this")
+
   const rect = canvasRef.value!.getBoundingClientRect()
   currentPoint.set(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
@@ -93,7 +66,9 @@ const onPointerUp = () => {
   isDrawing.value = false
 }
 
-
+// 创建响应式 viewerContext
+const viewerContext = ref<ViewerContext | null>(null)
+// 使用 useViewer 获取并初始化 viewerContext
 useViewer({
   viewerId: 'main',
   containerRef,

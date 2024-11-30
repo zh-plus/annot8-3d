@@ -11,6 +11,7 @@ import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS, CONTROLS, VIEWER_CONSTRAINTS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
 import {useViewportStore} from '@/stores/viewport'
+import {ViewerContext} from "@/types";
 
 const props = defineProps<{
   label: string
@@ -22,21 +23,24 @@ const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const viewerId = props.label.toLowerCase().replace(' view', '').replace(' ', '-')
 
-const {viewerContext} = useViewer({
+// 创建响应式 viewerContext
+const viewerContext = ref<ViewerContext | null>(null)
+
+useViewer({
   viewerId,
   containerRef,
   canvasRef,
   cameraPosition: props.cameraPosition,
-  onInit: (viewerContext) => {
-    setupScene(viewerContext)
-
+  onInit: (context) => {
+    viewerContext.value = context
+    setupScene(viewerContext.value)
     // View-specific configurations
     switch (props.label) {
       case 'Overhead View': {
         const {x, y, z} = CAMERA_POSITIONS.overhead
-        viewerContext.camera.position.set(x, y, z)
-        viewerContext.camera.up.set(0, 1, 0)
-        Object.assign(viewerContext.controls, {
+        viewerContext.value.camera.position.set(x, y, z)
+        viewerContext.value.camera.up.set(0, 1, 0)
+        Object.assign(viewerContext.value.controls, {
           minPolarAngle: 0,
           maxPolarAngle: 0,
           enableRotate: false
@@ -45,8 +49,8 @@ const {viewerContext} = useViewer({
       }
       case 'Side View': {
         const {x, y, z} = CAMERA_POSITIONS.side
-        viewerContext.camera.position.set(x, y, z)
-        Object.assign(viewerContext.controls, {
+        viewerContext.value.camera.position.set(x, y, z)
+        Object.assign(viewerContext.value.controls, {
           minAzimuthAngle: -Math.PI / 2,
           maxAzimuthAngle: -Math.PI / 2,
           enableRotate: false
@@ -55,8 +59,8 @@ const {viewerContext} = useViewer({
       }
       case 'Rear View': {
         const {x, y, z} = CAMERA_POSITIONS.rear
-        viewerContext.camera.position.set(x, y, z)
-        Object.assign(viewerContext.controls, {
+        viewerContext.value.camera.position.set(x, y, z)
+        Object.assign(viewerContext.value.controls, {
           minAzimuthAngle: Math.PI,
           maxAzimuthAngle: Math.PI,
           enableRotate: false
@@ -66,7 +70,7 @@ const {viewerContext} = useViewer({
     }
 
     // Apply control settings
-    Object.assign(viewerContext.controls, {
+    Object.assign(viewerContext.value.controls, {
       enableDamping: CONTROLS.enableDamping,
       dampingFactor: CONTROLS.dampingFactor,
       screenSpacePanning: CONTROLS.screenSpacePanning,
@@ -75,7 +79,7 @@ const {viewerContext} = useViewer({
       maxDistance: VIEWER_CONSTRAINTS.maxDistance
     })
 
-    viewportStore.registerViewerControls(viewerId, viewerContext.controls)
+    viewportStore.registerViewerControls(viewerId, viewerContext.value.controls)
   }
 })
 

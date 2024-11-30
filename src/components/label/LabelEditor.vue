@@ -1,15 +1,16 @@
 <template>
   <v-card class="label-editor-card rounded-0">
+    <!-- 1. 标题区域 -->
     <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
       Label Editor
       <v-btn
           icon="mdi-plus"
           size="small"
           variant="text"
-          @click="showAddDialog = true"
+          @click="showAddDialog = true" /><!--点击按钮后，弹出一个添加项的对话框 -->
       />
     </v-card-title>
-
+    <!-- 2. 标签列表内容区域 -->
     <v-card-text class="label-editor-content">
       <v-list density="compact">
         <v-list-item
@@ -17,8 +18,8 @@
             :key="label.id"
             :value="label.id"
             class="px-2"
-        >
-          <template v-slot:prepend>
+        > <!-- 选择框 -->
+          <template v-slot:prepend>  <!-- isSelected检查标签是否已被选中。toggleLabel切换标签的选择状态。-->
             <v-checkbox-btn
                 :model-value="isSelected(label.id)"
                 color="primary"
@@ -26,7 +27,9 @@
                 @update:model-value="() => toggleLabel(label.id)"
             />
           </template>
+          <!-- 标签名称 -->
           <v-list-item-title>{{ label.name }}</v-list-item-title>
+          <!-- 删除按钮 -->
           <template v-slot:append>
             <v-btn
                 class="delete-btn"
@@ -40,7 +43,7 @@
       </v-list>
     </v-card-text>
 
-    <!-- Add Label Dialog -->
+    <!-- 3. 新建标签对话框 -->
     <v-dialog v-model="showAddDialog" max-width="300px">
       <v-card>
         <v-card-title>Add New Label</v-card-title>
