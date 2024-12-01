@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+src/frontend/assets/__MACOSX/
 
 # Editor directories and files
 .vscode/*
@@ -28,3 +29,9 @@ dist-ssr
 /vite.config.js
 /vitest.setup.d.ts
 /vitest.setup.js
+
+# hidden files from MacOS
+.AppleDouble
+.DS_Store
+.LSOverride
+__MACOSX
