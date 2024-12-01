@@ -31,6 +31,9 @@ dist-ssr
 
 # hidden files from MacOS
 .AppleDouble
-.DS_Store
+**/.DS_Store
 .LSOverride
-__MACOSX
+**/__MACOSX
+
+
+/src/backend/data
