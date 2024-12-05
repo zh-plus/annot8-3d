@@ -4,21 +4,21 @@ import type {Box} from './types'
 import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
-import { useFileStore } from '@/stores/file';
+import {useFileStore} from '@/stores/file';
 import * as THREE from "three";
 
 export const useAnnotationStore = defineStore('annotation', {
     state: () => ({
         selectedAnnotation: null as string | null,
         isDrawing: false,
-        currentBox: null as Box|null,
-      }),
+        currentBox: null as Box | null,
+    }),
     getters: {
         // 动态获取当前文件的注解
-    annotations: () => {
-        const fileStore = useFileStore();
-        return fileStore.selectedFile?.annotations || [];
-      },
+        annotations: () => {
+            const fileStore = useFileStore();
+            return fileStore.selectedFile?.annotations || [];
+        },
     },
     actions: {
         addAnnotation(annotation: {
@@ -28,7 +28,10 @@ export const useAnnotationStore = defineStore('annotation', {
             depth: number;
             width: number;
             height: number;
-            color: number
+            color: number;
+            rotationX: number;
+            rotationY: number;
+            rotationZ: number;
         }) {
             const newBBAnnotation: Omit<Annotation, 'id'> = {
                 type: 'box',  // 指定类型为方框
@@ -40,7 +43,10 @@ export const useAnnotationStore = defineStore('annotation', {
                 depth: annotation.depth,
                 width: annotation.width,
                 height: annotation.height,
-                color: annotation.color
+                color: annotation.color,
+                rotationX: annotation.rotationX,
+                rotationY: annotation.rotationY,
+                rotationZ: annotation.rotationZ
             }
             this.annotations.push({
                 id: uuidv4(),
@@ -81,6 +87,9 @@ export const useAnnotationStore = defineStore('annotation', {
                     height: height,
                     depth: depth,
                     color: color,
+                    rotationX: 0,
+                    rotationY: 0,
+                    rotationZ: 0,
                 })
             } else {
                 boundingBox.position.set(0, 0, 0)
@@ -92,6 +101,9 @@ export const useAnnotationStore = defineStore('annotation', {
                     height: height,
                     depth: depth,
                     color: color,
+                    rotationX: 0,
+                    rotationY: 0,
+                    rotationZ: 0,
                 })
             }
             // 保存尺寸和位置到 userData
@@ -103,11 +115,16 @@ export const useAnnotationStore = defineStore('annotation', {
                     x: boundingBox.position.x,
                     y: boundingBox.position.y,
                     z: boundingBox.position.z,
+                },
+                rotation: {
+                    rotationX: boundingBox.rotation.x,
+                    rotationY: boundingBox.rotation.y,
+                    rotationZ: boundingBox.rotation.z,
                 }
             };
             return boundingBox;
         },
-        CreatBBox_byPositoin(x:number,y:number,z:number,label: string, width: number, height: number, depth: number){
+        CreatBBox_byPositoin(x: number, y: number, z: number, label: string, width: number, height: number, depth: number) {
             // 创建边界框
             const geometry = new THREE.BoxGeometry(width, height, depth)
             const edges = new THREE.EdgesGeometry(geometry)
@@ -132,7 +149,7 @@ export const useAnnotationStore = defineStore('annotation', {
             boundingBox.position.set(x, y, z)
             return boundingBox
         },
-        removeAnnotation(id: string ) {
+        removeAnnotation(id: string) {
             const index = this.annotations.findIndex(a => a.id === id)
             if (index !== -1) {
                 this.annotations.splice(index, 1)
@@ -147,18 +164,29 @@ export const useAnnotationStore = defineStore('annotation', {
         },
 
         selectAnnotation(id: string | null) {
-            if(this.selectedAnnotation!= null && this.selectedAnnotation.valueOf() === id){
+            if (this.selectedAnnotation != null && this.selectedAnnotation.valueOf() === id) {
                 this.selectedAnnotation = null
-            }
-            else{
-            console.log(id)
-            this.selectedAnnotation = id
+            } else {
+                console.log(id)
+                this.selectedAnnotation = id
             }
         },
-        setCurrentBox(box: { x: number, y: number, z: number, width: number, height: number, depth: number }) {
+        setCurrentBox(box: {
+            x: number,
+            y: number,
+            z: number,
+            width: number,
+            height: number,
+            depth: number,
+            rotationX: number,
+            rotationY: number,
+            rotationZ: number
+        }) {
             this.currentBox = box
         },
-        updateAnnotation(id: string | null, x: number, y: number, z: number, width: number, height: number, depth: number) {
+        updateAnnotation(id: string | null, x: number, y: number, z: number,
+                         width: number, height: number, depth: number,
+                         rotationX: number, rotationY: number, rotationZ: number) {
             if (id != null) {
                 const annotation = this.annotations.find(a => a.id === id)
                 if (annotation) {
@@ -168,6 +196,9 @@ export const useAnnotationStore = defineStore('annotation', {
                     annotation.width = width
                     annotation.height = height
                     annotation.depth = depth
+                    annotation.rotationX = rotationX
+                    annotation.rotationY = rotationY
+                    annotation.rotationZ = rotationZ
                 }
             }
         }

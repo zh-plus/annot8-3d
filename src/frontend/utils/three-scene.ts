@@ -2,116 +2,98 @@ import * as THREE from 'three'
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import type {CameraPosition, ViewerContext} from '@/types'
 import {CONTROLS, THREE_SCENE_COLORS, VIEWER_CONSTRAINTS, VIEWER_DEFAULTS} from '@/constants'
-import type {PerspectiveCamera} from "three";
+import {useSceneCamera} from '@/stores/scene_camera_control'
+import {OrthographicCamera} from "three";
 
 export function initializeScene(
     canvas: HTMLCanvasElement,
     container: HTMLElement,
-    cameraPosition: CameraPosition
+    cameraPosition: CameraPosition,
+    viewerId: string
+    // main
 ): ViewerContext {
-
-    const scene = new THREE.Scene()
-    scene.background = new THREE.Color(THREE_SCENE_COLORS.background)
-
-    const camera = new THREE.PerspectiveCamera(
-        VIEWER_DEFAULTS.fov,
-        container.clientWidth / container.clientHeight,
-        VIEWER_DEFAULTS.near,
-        VIEWER_DEFAULTS.far
-    )
-    camera.position.set(cameraPosition.x, cameraPosition.y, cameraPosition.z)
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection); // 获取相机的视线方向
-
-    const offset = 5
-    const camera_side = createCamera("side", camera, offset,container) as THREE.PerspectiveCamera;
-    const camera_head = createCamera("head", camera, offset,container) as THREE.PerspectiveCamera;
-    const camera_rear = createCamera("rear", camera, offset,container) as THREE.PerspectiveCamera;
-
+    const sceneCamera = useSceneCamera()
     const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: true
     })
     renderer.setSize(container.clientWidth, container.clientHeight)
     renderer.setPixelRatio(window.devicePixelRatio)
-
-    const controls = new OrbitControls(camera, canvas)
-    Object.assign(controls, CONTROLS, VIEWER_CONSTRAINTS)
-
-    const controls_side = new OrbitControls(camera_side, canvas);
-    //Object.assign(controls_side, CONTROLS, VIEWER_CONSTRAINTS)
-    const controls_head = new OrbitControls(camera_head, canvas);
-    //Object.assign(controls_side, CONTROLS, VIEWER_CONSTRAINTS)
-    const controls_rear = new OrbitControls(camera_rear, canvas);
-    //Object.assign(controls_side, CONTROLS, VIEWER_CONSTRAINTS)
-
-    const gridHelper = new THREE.GridHelper(100, 100, THREE_SCENE_COLORS.grid, THREE_SCENE_COLORS.grid)
-    scene.add(gridHelper)
-
-    const axesHelper = new THREE.AxesHelper(5)
-    scene.add(axesHelper)
-
-    return {scene, camera, camera_side, camera_head, camera_rear, renderer, controls, controls_side, controls_head, controls_rear}
+    //camera_ort.lookAt(new THREE.Vector3(boxPosition.x, boxPosition.y, boxPosition.z));
+    if (viewerId === 'main') {
+        console.log("ini scene")
+        //返回的camera都是透视相机
+        const camera = sceneCamera.ini_camera(container, cameraPosition)
+        const controls = new OrbitControls(camera, canvas)
+        Object.assign(controls, CONTROLS, VIEWER_CONSTRAINTS)
+        const scene = sceneCamera.ini_scene()
+        const gridHelper = new THREE.GridHelper(10, 10, THREE_SCENE_COLORS.grid, THREE_SCENE_COLORS.grid)
+        scene.add(gridHelper)
+        const axesHelper = new THREE.AxesHelper(5)
+        scene.add(axesHelper)
+        return {
+            scene: scene,
+            cameras: [camera],
+            renderer: renderer,
+            controls: [controls]
+        }
+    } else {
+        if (!sceneCamera.camera) {
+            console.log("errors in ini scene")
+            const camera = sceneCamera.ini_camera(container, cameraPosition)
+            const controls = new OrbitControls(camera, canvas)
+            return {
+                scene: sceneCamera.ini_scene(),
+                cameras: [camera],
+                renderer: renderer,
+                controls: [controls]
+            }
+        }
+        console.log("ini scene successfully")
+        const {camera_per, camera_ort} = createCamera(viewerId, sceneCamera.camera, container)
+        const control_per = new OrbitControls(camera_per, canvas)
+        Object.assign(control_per, CONTROLS, VIEWER_CONSTRAINTS)
+        const control_ort = new OrbitControls(camera_ort as OrthographicCamera, canvas)
+        Object.assign(control_ort, CONTROLS, VIEWER_CONSTRAINTS)
+        return {
+            scene: sceneCamera.scene as THREE.Scene,
+            cameras: [camera_per, camera_ort as OrthographicCamera],
+            renderer: renderer,
+            controls: [control_per, control_ort]
+        }
+    }
 }
 
-function createCamera(type:string, baseCamera:PerspectiveCamera, offset:number, container:HTMLElement) {
-    const camera = new THREE.PerspectiveCamera(
-        VIEWER_DEFAULTS.fov,
-        container.clientWidth / container.clientHeight,
-        VIEWER_DEFAULTS.near,
-        VIEWER_DEFAULTS.far
-    );
-
+function createCamera(type: string, baseCamera: THREE.PerspectiveCamera, container: HTMLElement) {
+    const sceneCamera = useSceneCamera()
     const cameraDirection = new THREE.Vector3();
     baseCamera.getWorldDirection(cameraDirection); // 获取视线方向
-
-    const cameraDirectionSide = new THREE.Vector3();
-    cameraDirectionSide.cross(new THREE.Vector3(0, 1, 0)).normalize(); // 计算右侧方向（垂直于视线）
-
+    // const cameraDirectionSide = new THREE.Vector3();
+    // cameraDirectionSide.cross(new THREE.Vector3(0, 1, 0)).normalize(); // 计算右侧方向（垂直于视线）
+    const rightDirection = new THREE.Vector3().crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0)).normalize();
+    const camera_ort = sceneCamera.ini_camera_ort(container, baseCamera, type)
+    let camera_per;
     switch (type) {
         case "side":
-            // 侧面视角
-            camera.position.set(
-                baseCamera.position.x + 3 + offset * (cameraDirectionSide.x + cameraDirection.x),
-                baseCamera.position.y,
-                baseCamera.position.z + 3 + offset * (cameraDirectionSide.z + cameraDirection.z)
-            );
-            break;
-
-        case "head":
-            // 顶视角
-            camera.position.set(
-                baseCamera.position.x,
-                baseCamera.position.y + 3,
-                baseCamera.position.z
-            );
-            camera.up.set(0, 0, -1); // 设置相机的 "上" 方向
-            break;
-
-        case "rear":
-            // 后视角
-            camera.position.set(
-                -(baseCamera.position.x + 3 + offset * (cameraDirectionSide.x + cameraDirection.x)),
-                baseCamera.position.y,
-                -(baseCamera.position.z + 3 + offset * (cameraDirectionSide.z + cameraDirection.z))
-            );
-            break;
-
+            camera_per = sceneCamera.ini_camera_side_per(container, baseCamera, cameraDirection, rightDirection)
+            return {camera_per, camera_ort}
+        case "overhead":
+            camera_per = sceneCamera.ini_camera_head_per(container, baseCamera, cameraDirection, rightDirection)
+            return {camera_per, camera_ort}
+        case "front":
+            camera_per = sceneCamera.ini_camera_front_per(container, baseCamera, cameraDirection, rightDirection)
+            return {camera_per, camera_ort}
         default:
-            console.warn("Invalid camera type:", type);
-            return null;
+            console.log("errors in ini camera")
+            camera_per = sceneCamera.ini_camera_front_per(container, baseCamera, cameraDirection, rightDirection)
+            return {camera_per, camera_ort}
     }
-
-    // 设置相机看向基准相机的位置
-    camera.lookAt(baseCamera.position.x, baseCamera.position.y, baseCamera.position.z);
-    return camera;
 }
-
 
 export function cleanupViewer(context: ViewerContext) {
     // Dispose controls
     if (context.controls) {
-        context.controls.dispose()
+        context.controls[0].dispose()
     }
 
     // Dispose materials and geometries from the scene

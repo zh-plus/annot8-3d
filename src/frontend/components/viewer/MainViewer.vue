@@ -9,12 +9,11 @@
         v-if="viewerContext"
         :viewerContext="viewerContext"
         @isDrag="handleIsDrag"/>
-    <FileChoose v-if="viewerContext" :viewerContext="viewerContext"/>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {ref, watchEffect, watch} from 'vue'
+import {ref, watch, watchEffect} from 'vue'
 import * as THREE from 'three'
 import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
@@ -23,16 +22,14 @@ import {CAMERA_POSITIONS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
-import FileChoose from "@/components/toolbar/FileChoose.vue";
-import {useFileStore} from '@/stores/file.ts'
-import {clearScene} from '@/utils/scene-manager'
-
+import {useSceneCamera} from "@/stores/scene_camera_control"
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const viewportStore = useViewportStore()
 const annotationStore = useAnnotationStore()
+const sceneCamera = useSceneCamera()
 //selectedTool 是从 toolStore 获取的当前选中的工具，它会动态显示在视图中。
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
@@ -49,17 +46,13 @@ const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 const dragStatus = ref(false)
 const handleIsDrag = (newStatus: boolean | undefined) => {
-  if (newStatus !== undefined) {
+    if (newStatus !== undefined) {
     dragStatus.value = newStatus
     console.log('Dragging is checked by MainViewer:', dragStatus.value)
   } else {
     console.log('Drag status is undefined')
   }
 }
-
-const fileStore = useFileStore();
-const {selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
-
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -81,18 +74,12 @@ const onPointerMove = (event: PointerEvent) => {
     event.preventDefault()  // 阻止默认行为
     event.stopPropagation() // 阻止事件传播
     if (viewerContext.value) {
-      viewerContext.value.controls.enabled = false;
-      viewerContext.value.controls_side.enabled = false;
-      viewerContext.value.controls_head.enabled = false;
-      viewerContext.value.controls_rear.enabled = false;
+      viewerContext.value.controls[0].enabled = false;
     }
     return
   }
   if (viewerContext.value) {
-    viewerContext.value.controls.enabled = true;
-    viewerContext.value.controls_side.enabled = true;
-    viewerContext.value.controls_head.enabled = true;
-    viewerContext.value.controls_rear.enabled = true;
+    viewerContext.value.controls[0].enabled = true;
   }
   console.log("Shouldn't run to this")
   const rect = canvasRef.value!.getBoundingClientRect()
@@ -118,16 +105,16 @@ useViewer({
     console.log('viewerContext initialized:', context)  // 调试输出
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
-    setupScene(viewerContext.value, 'None')
+    setupScene(viewerContext.value)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
     canvasRef.value!.addEventListener('pointerup', onPointerUp)
 
     // Single change event listener that handles camera movement
-    viewerContext.value.controls.addEventListener('change', () => {
+    viewerContext.value.controls[0].addEventListener('change', () => {
       if (viewerContext.value) {
-        viewportStore.updateMainCameraState(viewerContext.value.camera, viewerContext.value.controls)
+        viewportStore.updateMainCameraState(viewerContext.value.cameras[0], viewerContext.value.controls[0])
       }
     })
   },
@@ -144,19 +131,25 @@ useViewer({
   }
 })
 
-// 响应selectfile的更新
-watch(selectedFile, (newFile, oldFile) => {
-  if (newFile !== oldFile && viewerContext.value && newFile !== null) {
-    clearScene(viewerContext.value.scene);
-    console.log("Selected file changed:", newFile);
-    setupScene(viewerContext.value, newFile.file.name); // Call setupScene with updated selectedFile
-  }
-});
-
 // watcher 用于确保组件每次更新时，响应式的 viewerContext 被正确传递到子组件
 watchEffect(() => {
   console.log('viewerContext changed:', viewerContext.value)
 })
+watch(
+  () => sceneCamera.type, // 监听 Pinia store 中的 type 属性
+  (newType, oldType) => {
+    console.log('sceneCamera.type changed from', oldType, 'to', newType);
+    // 当 sceneCamera.type 变化时，触发 viewportStore 更新
+    if (viewerContext.value) {
+      if(sceneCamera.type == 1){
+        //timer()
+        console.log('sceneCamera.type changed to',sceneCamera.boxPosition)
+        viewerContext.value.controls[0].target.set(sceneCamera.boxPosition.x, sceneCamera.boxPosition.y, sceneCamera.boxPosition.z)
+      }
+      viewportStore.updateMainCameraState(viewerContext.value.cameras[0], viewerContext.value.controls[0]);
+    }
+  }
+);
 console.log('viewerContext:', viewerContext);  // 确保 viewerContext 在此输出
 
 </script>

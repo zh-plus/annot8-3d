@@ -6,16 +6,35 @@
         <tool-bar/>
 
         <!-- Main View -->
-
         <div class="main-section">
           <main-viewer/>
         </div>
-        <div id="sideLabel" style="position: absolute; top: 2%; left: 74%; color: white; font-size: 14px;">Side View
+
+        <!-- Side Views and Label Editor Container -->
+        <div class="side-section" v-if="sceneCamera.scene">
+          <!-- Side Views -->
+          <div class="side-views">
+            <div class="auxiliary-view-container">
+              <auxiliary-viewer
+                  :camera-position="viewportStore.cameraPositions.overhead"
+                  label="Overhead View"
+              />
+            </div>
+            <div class="auxiliary-view-container">
+              <auxiliary-viewer
+                  :camera-position="viewportStore.cameraPositions.side"
+                  label="Side View"
+              />
+            </div>
+            <div class="auxiliary-view-container">
+              <auxiliary-viewer
+                  :camera-position="viewportStore.cameraPositions.front"
+                  label="Front View"
+              />
+            </div>
+          </div>
         </div>
-        <div id="headLabel" style="position: absolute; top: 35%; left: 74%; color: white; font-size: 14px;">Head View
-        </div>
-        <div id="rearLabel" style="position: absolute; top: 68%; left: 74%; color: white; font-size: 14px;">Rear View
-        </div>
+        <!-- Label Editor -->
         <div class="label-editor">
           <label-editor/>
         </div>
@@ -31,17 +50,19 @@ import MainViewer from '@/components/viewer/MainViewer.vue'
 import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
 import {useViewportStore} from '@/stores'
+import {useSceneCamera} from '@/stores/scene_camera_control'
 import {UI_COLORS} from "@/constants" // Used in <style> v-bind
 
 const viewportStore = useViewportStore()
+const sceneCamera = useSceneCamera()
 const {lgAndUp, mdAndDown} = useDisplay()
 </script>
 
 <style scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: calc(100% - var(--label-editor-width)) var(--label-editor-width);
-  grid-template-areas: "main label-edit";
+  grid-template-columns: calc(100% - var(--side-view-width) - var(--label-editor-width)) var(--side-view-width) var(--label-editor-width);
+  grid-template-areas: "main side label-edit";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -60,8 +81,32 @@ const {lgAndUp, mdAndDown} = useDisplay()
   /* Remove margin */
 }
 
+.side-section {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-left: 1px solid var(--border-color);
+  background-color: v-bind('UI_COLORS.surface');
+}
+
+.side-views {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.auxiliary-view-container {
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(--aspect-ratio);
+}
+
+.auxiliary-view-container:last-child {
+  border-bottom: none;
+}
+
 .label-editor {
-  width: var(--label-editor-width);
   grid-area: label-edit;
   flex: 1;
   border-left: 1px solid var(--border-color);
@@ -70,7 +115,7 @@ const {lgAndUp, mdAndDown} = useDisplay()
 /* Responsive layouts */
 @media (max-width: 1280px) {
   .layout-grid {
-    grid-template-columns: calc(100%);
+    grid-template-columns: calc(100% - var(--side-view-width)) var(--side-view-width);
     grid-template-areas: "main side";
   }
 
@@ -94,10 +139,27 @@ const {lgAndUp, mdAndDown} = useDisplay()
 @media (max-width: 960px) {
   .layout-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
+    grid-template-rows: 2fr 1fr;
     grid-template-areas:
-      "main";
+      "main"
+      "side";
     margin-left: var(--toolbar-width);
+  }
+
+  .side-section {
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    flex-direction: row;
+  }
+
+  .side-views {
+    flex-direction: row;
+    flex: 3;
+  }
+
+  .auxiliary-view-container {
+    border-bottom: none;
+    border-right: 1px solid var(--border-color);
   }
 }
 
@@ -107,7 +169,12 @@ const {lgAndUp, mdAndDown} = useDisplay()
     grid-template-rows: auto 1fr auto;
     grid-template-areas:
       "toolbar"
-      "main";
+      "main"
+      "side";
+  }
+
+  .side-section {
+    height: 300px;
   }
 }
 </style>

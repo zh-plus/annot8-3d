@@ -33,53 +33,7 @@ useViewer({
   cameraPosition: props.cameraPosition,
   onInit: (context) => {
     viewerContext.value = context
-    setupScene(viewerContext.value,'None')
-    // View-specific configurations
-    switch (props.label) {
-      case 'Overhead View': {
-        const {x, y, z} = CAMERA_POSITIONS.overhead
-        viewerContext.value.camera.position.set(x, y, z)
-        viewerContext.value.camera.up.set(0, 1, 0)
-        Object.assign(viewerContext.value.controls, {
-          minPolarAngle: 0,
-          maxPolarAngle: 0,
-          enableRotate: false
-        })
-        break
-      }
-      case 'Side View': {
-        const {x, y, z} = CAMERA_POSITIONS.side
-        viewerContext.value.camera.position.set(x, y, z)
-        Object.assign(viewerContext.value.controls, {
-          minAzimuthAngle: -Math.PI / 2,
-          maxAzimuthAngle: -Math.PI / 2,
-          enableRotate: false
-        })
-        break
-      }
-      case 'Rear View': {
-        const {x, y, z} = CAMERA_POSITIONS.rear
-        viewerContext.value.camera.position.set(x, y, z)
-        Object.assign(viewerContext.value.controls, {
-          minAzimuthAngle: Math.PI,
-          maxAzimuthAngle: Math.PI,
-          enableRotate: false
-        })
-        break
-      }
-    }
-
-    // Apply control settings
-    Object.assign(viewerContext.value.controls, {
-      enableDamping: CONTROLS.enableDamping,
-      dampingFactor: CONTROLS.dampingFactor,
-      screenSpacePanning: CONTROLS.screenSpacePanning,
-      enableZoom: CONTROLS.enableZoom,
-      minDistance: VIEWER_CONSTRAINTS.minDistance,
-      maxDistance: VIEWER_CONSTRAINTS.maxDistance
-    })
-
-    viewportStore.registerViewerControls(viewerId, viewerContext.value.controls)
+    setupScene(viewerContext.value)
   }
 })
 

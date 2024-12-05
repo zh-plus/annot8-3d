@@ -10,15 +10,18 @@ export interface Tool {
 export interface Annotation {
     id: string
     type: 'box' | 'polygon'
-    label: string[]
+    label: string
     points: Vector3[]
     x: number
     y: number
     z: number
     width: number,
     height: number,
-    depth: number
-    color: number
+    depth: number,
+    color: number,
+    rotationX: number
+    rotationY: number
+    rotationZ: number
 }
 
 export interface File_Anno {

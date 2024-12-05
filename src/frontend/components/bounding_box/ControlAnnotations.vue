@@ -3,7 +3,9 @@ import * as THREE from "three";
 import {useRaycaster} from "@/composables/useViewerContext.ts";
 import {computed, nextTick, PropType, reactive, ref, watch, watchEffect} from "vue";
 import type {ViewerContext} from "@/types";
-import {useAnnotationStore, useToolStore} from "@/stores";
+import type {BoxPosition, BoxDimensions, BoxRotation} from "@/stores/types"
+import {useAnnotationStore, useToolStore, useViewportStore} from "@/stores";
+import {useSceneCamera} from "@/stores/scene_camera_control"
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
 
@@ -23,7 +25,10 @@ nextTick(() => {
 })
 
 const annotationStore = useAnnotationStore()
+const sceneCamera = useSceneCamera()
+const viewportStore = useViewportStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
+let seal_sphere: THREE.Mesh | null | undefined = null;
 const currentBox = computed(() => annotationStore.currentBox);
 const scene = props.viewerContext.scene
 
@@ -31,15 +36,20 @@ const isKeyAPressed_a = ref(false)
 const isKeyAPressed_d = ref(false)
 const showControlPanel = ref(false)
 
-const boxDimensions = reactive({
+const boxDimensions = reactive<BoxDimensions>({
   width: currentBox.value?.width || 1,
   height: currentBox.value?.height || 1,
   depth: currentBox.value?.depth || 1
 });
-const boxPosition = reactive({
+const boxPosition = reactive<BoxPosition>({
   x: currentBox.value?.x || 0,
   y: currentBox.value?.y || 0,
   z: currentBox.value?.z || 0
+});
+const boxRotation = reactive<BoxRotation>({
+  rotationX: currentBox.value?.rotationX || 0,
+  rotationY: currentBox.value?.rotationY || 0,
+  rotationZ: currentBox.value?.rotationZ || 0
 });
 
 const updateBoxProperties = () => {
@@ -47,7 +57,8 @@ const updateBoxProperties = () => {
     // 检查是否需要更新
     annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
         boxPosition.x, boxPosition.y, boxPosition.z,
-        boxDimensions.width, boxDimensions.height, boxDimensions.depth);
+        boxDimensions.width, boxDimensions.height, boxDimensions.depth,
+        boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
 
     const newGeometry = new THREE.BoxGeometry(
         boxDimensions.width,
@@ -74,6 +85,7 @@ watch([boxDimensions, boxPosition], async () => {
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
+    viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
   }
 }, {deep: true});
 watch(
@@ -135,6 +147,9 @@ const ClickBBox = (event: MouseEvent): void => {
         }
       }
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
+      //切换正交相机
+      sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
+      seal_sphere = sceneCamera.createAdjustableCube()
       // 打开面板
       showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
@@ -142,6 +157,12 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = null
       showControlPanel.value = false;
       annotationStore.selectedAnnotation = null;
+      sceneCamera.reset_observe_camera()
+      if (seal_sphere) {
+        sceneCamera.scene?.remove(seal_sphere)
+        seal_sphere = null
+        sceneCamera.boxPosition = {x: 0, y: 0, z: 0}
+      }
     }
   }
 }
@@ -344,22 +365,22 @@ onBeforeUnmount(() => {
         <v-slider
             v-model="annotationStore.currentBox.x"
             label="X Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.y"
             label="Y Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.z"
             label="Z Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-text-field

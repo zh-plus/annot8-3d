@@ -1,8 +1,9 @@
 import {defineStore} from 'pinia'
-import {type PerspectiveCamera, Vector3} from 'three'
+import {OrthographicCamera, type PerspectiveCamera, Vector3} from 'three'
 import type {OrbitControls} from 'three/addons/controls/OrbitControls.js'
 import {CAMERA_POSITIONS, VIEWER_MODES} from '@/constants'
 import type {ViewportState} from './types'
+import {useSceneCamera} from '@/stores/scene_camera_control'
 
 export const useViewportStore = defineStore('viewport', {
     state: (): ViewportState => ({
@@ -11,18 +12,24 @@ export const useViewportStore = defineStore('viewport', {
             main: CAMERA_POSITIONS.main,
             overhead: CAMERA_POSITIONS.overhead,
             side: CAMERA_POSITIONS.side,
-            rear: CAMERA_POSITIONS.rear
+            front: CAMERA_POSITIONS.front
         },
         syncEnabled: true,
         mainCameraState: {
             position: new Vector3(0, 0, 5),
             target: new Vector3(0, 0, 0),
         },
-        viewerControls: new Map()
+        viewerControls: new Map<string, OrbitControls[]>()
     }),
 
     actions: {
-        registerViewerControls(viewerId: string, controls: OrbitControls) {
+        registerViewerControls(viewerId: string, controls: OrbitControls[]) {
+            if (viewerId == "overhead") {
+                controls[0].minPolarAngle = Math.PI / 2; // 最小俯仰角（45度)
+                controls[0].maxPolarAngle = Math.PI / 2; // 最大俯仰角（90度，正下方）
+                controls[0].minAzimuthAngle = 0; // 最小水平旋转角度（-45度）
+                controls[0].maxAzimuthAngle = 0; // 最大水平旋转角度（45度）
+            }
             this.viewerControls.set(viewerId, controls)
         },
 
@@ -30,7 +37,7 @@ export const useViewportStore = defineStore('viewport', {
             this.viewerControls.delete(viewerId)
         },
 
-        updateMainCameraState(camera: PerspectiveCamera, controls: OrbitControls) {
+        updateMainCameraState(camera: PerspectiveCamera | OrthographicCamera, controls: OrbitControls) {
             this.mainCameraState = {
                 position: camera.position.clone(),
                 target: controls.target.clone(),
@@ -46,58 +53,30 @@ export const useViewportStore = defineStore('viewport', {
                 if (viewerId === VIEWER_MODES.MAIN) return
 
                 const mainPosition = this.mainCameraState.position.clone()
+                const mainTarget = this.mainCameraState.target.clone()
                 const viewerPosition = CAMERA_POSITIONS[viewerId]
 
                 if (!viewerPosition) return
 
+                const sceneCamera = useSceneCamera()
+
                 switch (viewerId) {
                     case VIEWER_MODES.OVERHEAD:
-                        // Maintain Y position, sync X and Z
-                        controls.object.position.set(
-                            mainPosition.x,
-                            5, // Fixed height for overhead view
-                            mainPosition.z
-                        )
-                        // Keep looking straight down
-                        controls.target.set(
-                            mainPosition.x,
-                            0,
-                            mainPosition.z
-                        )
+
+                        sceneCamera.update_camera_head(controls, mainPosition, mainTarget)
                         break
 
                     case VIEWER_MODES.SIDE:
-                        // Maintain X position, sync Y and Z
-                        controls.object.position.set(
-                            5, // Fixed position for side view
-                            mainPosition.y,
-                            mainPosition.z
-                        )
-                        // Keep looking along X axis
-                        controls.target.set(
-                            0,
-                            mainPosition.y,
-                            mainPosition.z
-                        )
+
+                        sceneCamera.update_camera_side(controls, mainPosition, mainTarget)
                         break
 
-                    case VIEWER_MODES.REAR:
-                        // Maintain Z position, sync X and Y
-                        controls.object.position.set(
-                            mainPosition.x,
-                            mainPosition.y,
-                            -5 // Fixed position for rear view
-                        )
-                        // Keep looking along Z axis
-                        controls.target.set(
-                            mainPosition.x,
-                            mainPosition.y,
-                            0
-                        )
+                    case VIEWER_MODES.FRONT:
+
+                        sceneCamera.update_camera_front(controls, mainPosition, mainTarget)
                         break
                 }
-
-                controls.update()
+                //controls.update()
             })
         },
 
