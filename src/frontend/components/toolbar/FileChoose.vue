@@ -54,7 +54,7 @@ const handleFileSelect = (event: Event) => {
       annotations: [] // 初始化空数组
     }));
     
-    fileStore.updateFile(fileAnnoArray);
+    // fileStore.updateFile(fileAnnoArray);
   }
 };
 

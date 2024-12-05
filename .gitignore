@@ -32,6 +32,15 @@ src/frontend/assets/__MACOSX/
 
 # hidden files from MacOS
 .AppleDouble
+<<<<<<< HEAD
 .DS_Store
 .LSOverride
 __MACOSX
+=======
+**/.DS_Store
+.LSOverride
+**/__MACOSX
+
+
+/src/backend/data
+>>>>>>> origin/backend

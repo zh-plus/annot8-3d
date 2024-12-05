@@ -4,6 +4,7 @@ import type {CameraPosition, ViewerContext} from '@/types'
 import {CONTROLS, THREE_SCENE_COLORS, VIEWER_CONSTRAINTS, VIEWER_DEFAULTS} from '@/constants'
 import type {PerspectiveCamera} from "three";
 
+
 export function initializeScene(
     canvas: HTMLCanvasElement,
     container: HTMLElement,
@@ -28,6 +29,7 @@ export function initializeScene(
     const camera_head = createCamera("head", camera, offset,container) as THREE.PerspectiveCamera;
     const camera_rear = createCamera("rear", camera, offset,container) as THREE.PerspectiveCamera;
 
+
     const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: true
@@ -46,6 +48,7 @@ export function initializeScene(
     //Object.assign(controls_side, CONTROLS, VIEWER_CONSTRAINTS)
 
     const gridHelper = new THREE.GridHelper(100, 100, THREE_SCENE_COLORS.grid, THREE_SCENE_COLORS.grid)
+
     scene.add(gridHelper)
 
     const axesHelper = new THREE.AxesHelper(5)
@@ -106,6 +109,7 @@ function createCamera(type:string, baseCamera:PerspectiveCamera, offset:number, 
     camera.lookAt(baseCamera.position.x, baseCamera.position.y, baseCamera.position.z);
     return camera;
 }
+
 
 
 export function cleanupViewer(context: ViewerContext) {

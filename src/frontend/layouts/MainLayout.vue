@@ -6,7 +6,6 @@
         <tool-bar/>
 
         <!-- Main View -->
-
         <div class="main-section">
           <main-viewer/>
             <!-- Label controller-->
@@ -48,6 +47,7 @@ const {lgAndUp, mdAndDown} = useDisplay()
   display: grid;
   grid-template-columns: calc(100% - var(--label-editor-width)) var(--label-editor-width);
   grid-template-areas: "main label-edit";
+
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -65,6 +65,7 @@ const {lgAndUp, mdAndDown} = useDisplay()
   overflow: hidden;
   /* Remove margin */
 }
+
 .label-controller {
   position: absolute; /* Place it relative to .main-section */
   top: 10px; /* Adjust as needed for spacing from the top */
@@ -78,8 +79,6 @@ const {lgAndUp, mdAndDown} = useDisplay()
   border-radius: 8px; /* Optional: Rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
 }
-
-
 .label-editor {
   width: var(--label-editor-width);
   grid-area: label-edit;
@@ -119,6 +118,7 @@ const {lgAndUp, mdAndDown} = useDisplay()
       "main";
     margin-left: var(--toolbar-width);
   }
+
 }
 
 @media (max-width: 600px) {

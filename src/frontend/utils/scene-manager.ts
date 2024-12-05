@@ -22,18 +22,18 @@ export function setupScene(viewerContext: ViewerContext,path:string) {
         const isPCD = () => path.toLowerCase().endsWith('.pcd');
         const isOBJ = () => path.toLowerCase().endsWith('.obj');
         if (isPCD()) {
-        path ='src/assets/PCD_cloud/drive_33_north_to_south/point_clouds/vehicle_lidar_robosense/' + path  
+        // path ='src/assets/PCD_cloud/drive_33_north_to_south/point_clouds/vehicle_lidar_robosense/' + path  
         console.log(path)
             loadPointCloudFromPCD(path,viewerContext.scene)
         }
         if (isOBJ()){
-            path = 'src/assets/obj_file_demo/0a0f0cf2-3a34-4ba2-b24f-34f361c36b3e/'+path
+            // path = 'src/assets/obj_file_demo/0a0f0cf2-3a34-4ba2-b24f-34f361c36b3e/'+path
             loadPointCloudFromOBJ(path, viewerContext.scene)
         }
         const AnnotationStore = useAnnotationStore()
         const { annotations } = storeToRefs(AnnotationStore); 
-
         annotations.value.forEach((annotation) => {
+          
           const BBox = AnnotationStore.CreatBBox_byPositoin(annotation.x, annotation.y, annotation.z,annotation.label[0],annotation.width, annotation.height,annotation.depth)
           viewerContext.scene.add(BBox)
         });

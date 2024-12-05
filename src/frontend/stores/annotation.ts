@@ -5,7 +5,9 @@ import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
 import { useFileStore } from '@/stores/file';
-import * as THREE from "three";
+import * as THREE from "three"
+import axios from 'axios';
+
 
 export const useAnnotationStore = defineStore('annotation', {
     state: () => ({
@@ -111,22 +113,22 @@ export const useAnnotationStore = defineStore('annotation', {
             // 创建边界框
             const geometry = new THREE.BoxGeometry(width, height, depth)
             const edges = new THREE.EdgesGeometry(geometry)
-            let color = 0xffffff
+            let color = 0x00ff00
             // 与label tool关联后需要修改
-            switch (label) {
-                case 'Car':
-                    color = 0x00ff00;
-                    break;
-                case 'Pedestrian':
-                    color = 0xff0000;
-                    break;
-                case 'Cyclist':
-                    color = 0x0000ff;
-                    break;
-                case 'Traffic Sign':
-                    color = 0xffff00;
-                    break;
-            }
+            // switch (label) {
+            //     case 'Car':
+            //         color = 0x00ff00;
+            //         break;
+            //     case 'Pedestrian':
+            //         color = 0xff0000;
+            //         break;
+            //     case 'Cyclist':
+            //         color = 0x0000ff;
+            //         break;
+            //     case 'Traffic Sign':
+            //         color = 0xffff00;
+            //         break;
+            // }
             const material = new THREE.LineBasicMaterial({color: color})
             const boundingBox = new THREE.LineSegments(edges, material)
             boundingBox.position.set(x, y, z)

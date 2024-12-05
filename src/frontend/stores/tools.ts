@@ -10,7 +10,8 @@ export const useToolStore = defineStore('tools', {
             {id: 'drag', name: 'Drag', icon: 'mdi-drag', active: false},
             {id: 'delete', name: 'Delete', icon: 'mdi-delete', active: false},
             //新增文件选择tool
-            {id: 'file', name: 'File', icon: 'mdi-folder-outline', active: false}
+            {id: 'file', name: 'File', icon: 'mdi-folder-outline', active: false},
+            {id: 'save', name: 'Save', icon: 'mdi-folder-download', active: false}
         ]
     }),
 

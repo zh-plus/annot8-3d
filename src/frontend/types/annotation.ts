@@ -8,10 +8,10 @@ export interface Tool {
 }
 
 export interface Annotation {
-    id: string
+    id: string 
     type: 'box' | 'polygon'
     label: string[]
-    points: Vector3[]
+    points: Vector3[]|any
     x: number
     y: number
     z: number
@@ -24,4 +24,12 @@ export interface Annotation {
 export interface File_Anno {
     file:File
     annotations: Annotation[]
+}
+export interface Folder{
+    id:string
+    files: File_Anno[]
+}
+export interface File{
+    name:string
+    file_path:string
 }

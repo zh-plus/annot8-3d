@@ -16,7 +16,7 @@
 <script lang="ts" setup>
 import {ref, watchEffect, watch} from 'vue'
 import * as THREE from 'three'
-import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
+import {useAnnotationStore, useToolStore, useViewportStore,useLabelStore} from '@/stores'
 import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS} from '@/constants'
@@ -36,7 +36,7 @@ const annotationStore = useAnnotationStore()
 //selectedTool 是从 toolStore 获取的当前选中的工具，它会动态显示在视图中。
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
-
+const labelStore = useLabelStore()
 // 创建响应式 viewerContext
 const viewerContext = ref<ViewerContext | null>(null)
 // 使用 useViewer 获取并初始化 viewerContext
@@ -119,6 +119,9 @@ useViewer({
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
     setupScene(viewerContext.value, 'None')
+    //annotationStore.initialAnnotation(0,0)
+    fileStore.initialFiles(0)
+    labelStore.initialLabels(0)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
@@ -145,11 +148,16 @@ useViewer({
 })
 
 // 响应selectfile的更新
-watch(selectedFile, (newFile, oldFile) => {
+watch(selectedFile, async (newFile, oldFile) => {
   if (newFile !== oldFile && viewerContext.value && newFile !== null) {
     clearScene(viewerContext.value.scene);
     console.log("Selected file changed:", newFile);
-    setupScene(viewerContext.value, newFile.file.name); // Call setupScene with updated selectedFile
+    
+    // Wait for fileStore.set_file_anno() to finish
+    await fileStore.set_file_anno();
+    // After set_file_anno() completes, call cc
+    setupScene(viewerContext.value, newFile.file.file_path);
+    console.log("Selected file", newFile.file.file_path);
   }
 });
 
