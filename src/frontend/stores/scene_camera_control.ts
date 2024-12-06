@@ -31,8 +31,7 @@ export const useSceneCamera = defineStore('scene', {
     actions: {
         createAdjustableCube() {
             if (this.type === 1) {
-                if (!this.scene) return null
-                const geometry = new THREE.SphereGeometry(this.distance * 1.05, 32,32); // 设置默认的 1x1x1 正方体
+                const geometry = new THREE.SphereGeometry(this.distance * 1.1, 32, 32); // 创建 SphereGeometry
                 const material = new THREE.MeshBasicMaterial({
                     color: 0x000000,  // 黑色
                     side: THREE.DoubleSide, // 渲染正反面
@@ -40,9 +39,10 @@ export const useSceneCamera = defineStore('scene', {
                 });
                 const sphere = new THREE.Mesh(geometry, material);
                 sphere.position.set(this.boxPosition.x, this.boxPosition.y, this.boxPosition.z);
-                //cube.scale.set(this.distance * 1.2, this.distance * 1.2, this.distance * 1.2)
-                this.scene.add(sphere)
-                return sphere
+                if (!this.scene) return null
+                this.scene.add(sphere);  // 将球体添加到场景
+                return sphere;  // 返回创建的球体
+
             }
         },
         ini_camera(container: HTMLElement, cameraPosition: CameraPosition) {

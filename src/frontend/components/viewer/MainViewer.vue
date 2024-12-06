@@ -105,7 +105,7 @@ useViewer({
     console.log('viewerContext initialized:', context)  // 调试输出
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
-    setupScene(viewerContext.value)
+    setupScene(viewerContext.value, 'None')
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
@@ -139,13 +139,7 @@ watch(
   () => sceneCamera.type, // 监听 Pinia store 中的 type 属性
   (newType, oldType) => {
     console.log('sceneCamera.type changed from', oldType, 'to', newType);
-    // 当 sceneCamera.type 变化时，触发 viewportStore 更新
     if (viewerContext.value) {
-      if(sceneCamera.type == 1){
-        //timer()
-        console.log('sceneCamera.type changed to',sceneCamera.boxPosition)
-        viewerContext.value.controls[0].target.set(sceneCamera.boxPosition.x, sceneCamera.boxPosition.y, sceneCamera.boxPosition.z)
-      }
       viewportStore.updateMainCameraState(viewerContext.value.cameras[0], viewerContext.value.controls[0]);
     }
   }

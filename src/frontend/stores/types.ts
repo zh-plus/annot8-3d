@@ -82,6 +82,9 @@ export interface Box {
     width: number;
     height: number;
     depth: number;
+    rotationX: number;  // 绕 X 轴旋转
+    rotationY: number;  // 绕 Y 轴旋转
+    rotationZ: number;   // 绕 Z 轴旋转
 }
 
 export interface BoxPosition {

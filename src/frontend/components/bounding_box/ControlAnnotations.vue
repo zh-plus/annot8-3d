@@ -134,7 +134,7 @@ const ClickBBox = (event: MouseEvent): void => {
       }
     }
     // 当前选择
-    if (annotation) {
+    if (annotation && sceneCamera.type == 0) {
       console.log("selected annotation: ", annotation)
       annotationStore.selectAnnotation(annotation.id);
       annotationStore.currentBox = annotation;
@@ -149,7 +149,9 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
       //切换正交相机
       sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
-      seal_sphere = sceneCamera.createAdjustableCube()
+      setTimeout(() => {
+        seal_sphere = sceneCamera.createAdjustableCube()
+      },50);
       // 打开面板
       showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
@@ -158,8 +160,13 @@ const ClickBBox = (event: MouseEvent): void => {
       showControlPanel.value = false;
       annotationStore.selectedAnnotation = null;
       sceneCamera.reset_observe_camera()
-      if (seal_sphere) {
-        sceneCamera.scene?.remove(seal_sphere)
+      if (seal_sphere && sceneCamera.scene) {
+        console.log("should delete sphere")
+        sceneCamera.scene.traverse((object) => {
+          if (object instanceof THREE.Mesh && !(object.geometry instanceof THREE.BoxGeometry)) {
+            sceneCamera.scene?.remove(object);
+          }
+        });
         seal_sphere = null
         sceneCamera.boxPosition = {x: 0, y: 0, z: 0}
       }
@@ -223,6 +230,21 @@ const onMouseUp = (): void => {
   // 停止拖动
   annotationStore.isDrawing = false;
 };
+
+// 鼠标滑轮事件的处理函数
+const onWheel = (event: WheelEvent): void => {
+    if (event.deltaY < 0 && seal_sphere) {
+      // 向上滚动，缩小
+      seal_sphere.scale.set(seal_sphere.scale.x * 0.9091, seal_sphere.scale.y * 0.9091, seal_sphere.scale.z * 0.9091);
+      console.log("Shrinking: ", seal_sphere.scale);
+    } else if (event.deltaY > 0 && seal_sphere) {
+      // 向下滚动，放大
+      seal_sphere.scale.set(seal_sphere.scale.x * 1.1, seal_sphere.scale.y * 1.1, seal_sphere.scale.z * 1.1);
+      console.log("Enlarging: ", seal_sphere.scale);
+    }
+  // 阻止默认行为，避免页面滚动
+  event.preventDefault();
+}
 
 const onKeyDown_a = (event: KeyboardEvent) => {
   if (event.key === 'a') {
@@ -288,6 +310,7 @@ onMounted(() => {
     canvas.addEventListener('mousedown', onMouseDown);
     canvas.addEventListener('mousemove', onMouseMove);
     canvas.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('wheel', onWheel)
   }
 })
 
@@ -302,6 +325,7 @@ onBeforeUnmount(() => {
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mouseup', onMouseUp);
+    canvas.removeEventListener('wheel', onWheel)
   }
 })
 
