@@ -1,25 +1,28 @@
 <template>
- <v-container fluid v-if="allFolder && allFolder.length && FileListEnabled">
-  <v-row no-gutters>
+ <!-- <v-container fluid v-if="allFolder && allFolder.length && FileListEnabled"> -->
+<v-container fluid v-if="FileListEnabled">
+  <file-manager/>
+  <!-- <v-row no-gutters> -->
+    
     <!-- 文件列表 -->
-    <v-col cols="6" class="file-list">
-      <v-list nav>
+    <!-- <v-col cols="6" class="file-list">
+      <v-list nav> -->
         <!-- 遍历文件夹数组 -->
-        <v-list-group
+        <!-- <v-list-group
           v-for="folder in allFolder"
           :key="folder.id"
           :value="folder.id"
-        >
+        > -->
           <!-- 一级目录（文件夹） -->
-          <template v-slot:activator="{ props }">
+          <!-- <template v-slot:activator="{ props }">
             <v-list-item 
               v-bind="props"
               :title="folder.id"
             ></v-list-item>
           </template>
-          
+           -->
           <!-- 二级目录（文件） -->
-          <v-list-item 
+          <!-- <v-list-item 
             v-for="file in folder.files"
             :key="file.file.name"
             :title="file.file.name"
@@ -28,10 +31,10 @@
           ></v-list-item>
         </v-list-group>
       </v-list>
-    </v-col>
+    </v-col> -->
 
     <!-- 标注结果 -->
-    <v-col cols="6" class="annotation-results">
+    <!-- <v-col cols="6" class="annotation-results">
       <v-list density="compact">
         <v-list-item
           v-for="item in selectedFile?.annotations"
@@ -39,11 +42,11 @@
           @click="annotationStore.selectAnnotation(item.id)"
           :value="item.id"
           class="px-2"
-        >
+        > -->
           <!-- 标签名称 -->
-          <v-list-item-title>{{ item.label }}</v-list-item-title>
+          <!-- <v-list-item-title>{{ item.label }}</v-list-item-title> -->
           <!-- 删除按钮 -->
-          <template v-slot:append>
+          <!-- <template v-slot:append>
             <v-btn
               class="delete-btn"
               icon="mdi-delete"
@@ -54,8 +57,8 @@
           </template>
         </v-list-item>
       </v-list>
-    </v-col>
-  </v-row>
+    </v-col> -->
+  <!-- </v-row> -->
 </v-container>
 
 </template>
@@ -67,6 +70,7 @@ import { storeToRefs } from 'pinia';
 import { useFileStore } from '@/stores/file.ts'; 
 import { File_Anno } from '@/types';
 import { useAnnotationStore } from '@/stores';
+import FileManager from '../toolbar/FileManager.vue';
 
 const fileStore = useFileStore();//实例化
 const { allFolder,selectedFile,FileListEnabled} = storeToRefs(fileStore); //解构
