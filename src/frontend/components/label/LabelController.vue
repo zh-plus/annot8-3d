@@ -55,9 +55,9 @@
               @click="deleteAnnotation(item)"
             />
           </template> -->
-        </v-list-item>
+        <!-- </v-list-item>
       </v-list>
-    </v-col> -->
+    </v-col>  -->
   <!-- </v-row> -->
 </v-container>
 

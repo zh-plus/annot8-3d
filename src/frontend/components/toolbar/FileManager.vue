@@ -14,8 +14,8 @@
         </div>
         <div v-else-if="currentLevel === 2">
           <ul class="directory-list">
-            <li v-for="subDir in currentProject?.subDirs" :key="subDir.name">
-              <button @click="openSubDir(subDir.name)" class="directory-button">📂 {{ subDir.name }}</button>
+            <li v-for="Episode in currentProject?.Episodes" :key="Episode.name">
+              <button @click="openEpisode(Episode.name)" class="directory-button">📂 {{ Episode.name }}</button>
             </li>
           </ul>
         </div>
@@ -38,20 +38,20 @@
     pointcloudFiles: string[];
   }
   
-  interface SubDir {
+  interface Episode {
     name: string;
     pointcloudFiles: string[];
   }
   
   interface Project {
     name: string;
-    subDirs: SubDir[];
+    Episodes: Episode[];
   }
   
   const treeData = ref<{ projects: Project[] } | null>(null);
   const currentLevel = ref(1);
   const currentProject = ref<Project | null>(null);
-  const currentSubDir = ref<SubDir | null>(null);
+  const currentEpisode = ref<Episode | null>(null);
   const currentPointcloudFiles = ref<string[]>([]);
   
   const showDirectory = () => {
@@ -61,7 +61,7 @@
       projects: [
         {
           name: 'project_1',
-          subDirs: [
+          Episodes: [
             {
               name: 'ds0',
               pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
@@ -70,7 +70,7 @@
         },
         {
           name: 'project_2',
-          subDirs: [
+          Episodes: [
             {
               name: 'ds1',
               pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
@@ -110,13 +110,13 @@
     }
   };
   
-  const openSubDir = (subDirName: string) => {
+  const openEpisode = (EpisodeName: string) => {
     if (currentProject.value) {
-      currentSubDir.value = currentProject.value.subDirs.find(
-        (subDir) => subDir.name === subDirName
+      currentEpisode.value = currentProject.value.Episodes.find(
+        (Episode) => Episode.name === EpisodeName
       ) || null;
-      if (currentSubDir.value) {
-        currentPointcloudFiles.value = currentSubDir.value.pointcloudFiles;
+      if (currentEpisode.value) {
+        currentPointcloudFiles.value = currentEpisode.value.pointcloudFiles;
         currentLevel.value = 3;
       }
     }
