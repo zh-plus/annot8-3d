@@ -3,6 +3,7 @@ import importlib
 import pkgutil
 
 from openapi_server.apis.default_api_base import BaseDefaultApi
+from openapi_server.impl.database import JSONDatabase
 import openapi_server.impl
 
 from fastapi import (  # noqa: F401
@@ -80,7 +81,9 @@ async def create_project(
 ) -> Project:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseDefaultApi.subclasses[0]().create_project(project_request)
+    
+    username = token_BearerAuth.sub
+    return await BaseDefaultApi.subclasses[0]().create_project(project_request, username)
 
 @router.get(
     "/projects/{project_id}/episodes/{episode_id}",
@@ -122,7 +125,8 @@ async def get_projects(
 ) -> List[Project]:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseDefaultApi.subclasses[0]().get_projects()
+    username = token_BearerAuth.sub
+    return await BaseDefaultApi.subclasses[0]().get_projects(username)
 
 
 @router.get(
@@ -144,6 +148,14 @@ async def list_episodes(
 ) -> List[Episode]:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
+    
+    db = JSONDatabase()
+    username = token_BearerAuth.sub
+    user = db.get_user(username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    if project_id not in user['projects']:
+        raise HTTPException(status_code=404, detail="You do not have access to this project")
     return await BaseDefaultApi.subclasses[0]().list_episodes(project_id)
 
 
