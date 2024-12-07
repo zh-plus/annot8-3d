@@ -44,18 +44,18 @@ const openFilePicker = () => {
 
 // 批量文件选择
 const handleFileSelect = (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (input?.files?.length) {
-    const selectedFiles = Array.from(input.files);
-    console.log('选择的文件:', selectedFiles);
-    // 转化成File_Anno格式
-    const fileAnnoArray: File_Anno[] = selectedFiles.map(file => ({
-      file,
-      annotations: [] // 初始化空数组
-    }));
+  // const input = event.target as HTMLInputElement;
+  // if (input?.files?.length) {
+  //   const selectedFiles = Array.from(input.files);
+  //   console.log('选择的文件:', selectedFiles);
+  //   // 转化成File_Anno格式
+  //   const fileAnnoArray: File_Anno[] = selectedFiles.map(file => ({
+  //     file,
+  //     annotations: [] // 初始化空数组
+  //   }));
     
-    // fileStore.updateFile(fileAnnoArray);
-  }
+  //   // fileStore.updateFile(fileAnnoArray);
+  // }
 };
 
 </script>

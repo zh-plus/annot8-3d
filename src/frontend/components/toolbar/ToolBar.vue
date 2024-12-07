@@ -77,12 +77,26 @@ const {toggleEvent} = fileStore
 watch(selectedTool, (newTool) => {
   if (newTool && newTool === 'save') {
     console.log('choose save')
+    selectTool(newTool)
     if (selectedFile.value != null){
-      console.log(selectedFile)
-      console.log('ddddddddddddd',+selectedFile.value?.annotations)
-      save_annotations(0,selectedFile.value?.annotations)
+      const path=selectedFile.value.file.file_path
+      const dsPartMatch = path.match(/\/(ds\d+)\//);
+      if (dsPartMatch) {
+          const dsPart = dsPartMatch[1]; // 获取 'ds0'
+          // 从 'ds0' 中提取数字
+          const numberMatch = dsPart.match(/\d+/);
+          if (numberMatch) {
+              const number = parseInt(numberMatch[0], 10); // 转为数字类型
+              console.log(number); // 输出: 0
+              save_annotations(0,number,selectedFile.value?.annotations,selectedFile.value.file.name)
+          } else {
+              console.error("path format uncorrect");
+          }
+      } else {
+          console.error("No ds_module found in the path");
     }
   }
+}
 });
 
 

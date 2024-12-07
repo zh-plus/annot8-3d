@@ -136,8 +136,12 @@ export const useAnnotationStore = defineStore('annotation', {
         },
         removeAnnotation(id: string ) {
             const index = this.annotations.findIndex(a => a.id === id)
+            // if (fileStore.selectedFile!= null){
+            // fileStore.selectedFile.annotations=annotations
+            // }
             if (index !== -1) {
                 this.annotations.splice(index, 1)
+                console.log("annotation removed:", this.annotations)
                 if (this.selectedAnnotation === id) {
                     this.selectedAnnotation = null
                 }

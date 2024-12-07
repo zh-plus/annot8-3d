@@ -31,7 +31,7 @@ class Annotation(BaseModel):
     """
     Annotation
     """ # noqa: E501
-    id: StrictInt = Field(description="Unique identifier for the annotation")
+    id: StrictStr = Field(description="Unique identifier for the annotation")
     pcd_file_id: Optional[StrictStr] = Field(default=None, description="The name of the .pcd file")
     label: StrictStr = Field(description="Label for the annotated object")
     geometry: StrictStr = Field(description="The shape of the bounding box")

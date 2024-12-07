@@ -236,9 +236,12 @@ const onKeyDown_d = (event: KeyboardEvent) => {
       console.log("isDelete")
       currentlySelectedBox.clear()
       props.viewerContext.scene.remove(currentlySelectedBox)  // 从场景中删除选中的边界框
+      if (annotationStore.selectedAnnotation!=null) {
+      annotationStore.removeAnnotation(annotationStore.selectedAnnotation)
+      }
       currentlySelectedBox = null
       showControlPanel.value = false;
-      annotationStore.selectedAnnotation = null;
+      // annotationStore.selectedAnnotation = null;
     }
   }
 }

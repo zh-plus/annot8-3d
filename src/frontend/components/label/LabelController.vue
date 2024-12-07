@@ -43,7 +43,7 @@
           <!-- 标签名称 -->
           <v-list-item-title>{{ item.label }}</v-list-item-title>
           <!-- 删除按钮 -->
-          <template v-slot:append>
+          <!-- <template v-slot:append>
             <v-btn
               class="delete-btn"
               icon="mdi-delete"
@@ -51,7 +51,7 @@
               variant="text"
               @click="deleteAnnotation(item)"
             />
-          </template>
+          </template> -->
         </v-list-item>
       </v-list>
     </v-col>

@@ -63,7 +63,7 @@ class BaseDefaultApi:
         project_id: StrictInt,
         episode_id: StrictInt,
         file_name:StrictStr
-    ) -> Dict[str, Any]:
+    ) -> List[Annotation]:
         raise NotImplementedError("get_annotations() is not implemented")
 
 
@@ -142,7 +142,7 @@ class BaseDefaultApi:
             self,
             project_id: StrictInt,
             episode_id: StrictInt,
-            annotations: Annotation,
+            annotations: List[Annotation],
         ) -> bool:
             raise NotImplementedError("save_annotations() is not implemented")
 

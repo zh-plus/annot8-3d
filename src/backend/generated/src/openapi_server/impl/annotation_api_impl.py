@@ -31,8 +31,9 @@ class AnnotationApiImpl(BaseDefaultApi):
         try:
             with open(annot_file, 'r') as f:
                 content = json.load(f)  # Load the JSON content as a dictionary
+                annotations = [Annotation(**item) for item in content]
             logger.info(f"Successfully loaded annotation file: {annot_file}")
-            return content  # FastAPI will automatically return this as JSON
+            return annotations  # FastAPI will automatically return this as JSON
         except Exception as e:
             logger.error(f"Error reading annotation file {annot_file}: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error reading annotation file: {file_name}")
@@ -65,10 +66,10 @@ class AnnotationApiImpl(BaseDefaultApi):
 
         return annotation_request
     
-    async def save_annotations(self, project_id: int, episode_id: int,annotation):
+    async def save_annotations(self, project_id: int, episode_id: int,annotations):
         print('ok')
         annots_dir = PROJECT_ROOT / 'data' / 'projects'/ f'project_{project_id}' / f'ds{episode_id}' / 'ann'
-        file_id = annotation.pcd_file_id
+        file_id = annotations[0].pcd_file_id
         annot_file = annots_dir / f"{file_id}.json"
         print(annot_file)
         if not annots_dir.exists():
@@ -80,9 +81,14 @@ class AnnotationApiImpl(BaseDefaultApi):
                 with open(annot_file, 'w') as f:
                     # add one annotation to the file
                     # data = json.load(f)
-                    annot = json.loads(annotation.to_json())
-                    json.dump(annot, f, indent=4)
+                    all_annotations = [annotation.to_dict() for annotation in annotations]
+                    
+                    json.dump(all_annotations, f, indent=4)
                     print('save successfully')
+                        
+                    # annot = json.loads(annotation.to_json())
+                    # json.dump(annot, f, indent=4)
+                    # print('save successfully')
                     return True
                     # annot['id'] = len(data["objects"]) + 1
                     

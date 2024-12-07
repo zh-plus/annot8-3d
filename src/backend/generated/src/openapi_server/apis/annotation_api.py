@@ -108,7 +108,7 @@ async def get_annotations(
     token_BearerAuth: TokenModel = Security(
         get_token_BearerAuth
     ),
-) -> Dict[str, Any]:
+) -> List[Annotation]:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
     
@@ -153,7 +153,7 @@ async def update_annotation(
 async def save_annotations(
     project_id: StrictInt = Path(..., description=""),
     episode_id: StrictInt = Path(..., description=""),
-    annotations: Annotation= Body(None, description="List of annotation updates"),
+    annotations: List[Annotation]= Body(None, description="List of annotation updates"),
     token_BearerAuth: TokenModel = Security(
         get_token_BearerAuth
     ),
