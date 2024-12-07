@@ -16,6 +16,10 @@ class ProjectApiImpl(BaseDefaultApi):
     
     async def get_all_PCDFiles(self, project_id: int):
         # Define the annotations directory path
+        # TODO 考虑如何更好的组织文件夹结构
+        # 我们应该将用户的所有project都放在一个文件夹下，然后根据user_id去找到对应的用户文件夹
+        # 例如/data/{user_id}/projects/{project_id}/
+        # 这样可以更好的组织文件夹结构，而不是将所有的project都放在一个文件夹下
         annots_dir = PROJECT_ROOT / 'data' / 'projects'/ f'project_{project_id}' 
 
         # Check if the annotations directory exists
@@ -23,14 +27,17 @@ class ProjectApiImpl(BaseDefaultApi):
             logger.error(f"project directory not found: {annots_dir}")
             raise HTTPException(status_code=404, detail="Project not found")
 
-        folders = {} # 这里是不是可以再定义一个类去优化
+        folders = {} # 这里是不是可以再定义一个类去优化：我们可以暂时不考虑这个问题，先把功能实现了
+        # 一个dict结构也可以很好的描述这个文件夹
         print(annots_dir)
         # Iterate through all the JSON files in the directory
         try:
             folders = [os.path.join(annots_dir, name) for name in os.listdir(annots_dir) 
                 if os.path.isdir(os.path.join(annots_dir, name)) and name.startswith('ds')]
 
-            all_files = {}  # 用于存储每个子文件夹中的文件
+            all_files = {}  # 用于存储每个子文件夹中的文件: 我们只存储文件的路径而不是真实的文件内容
+            # 得到路径（比如文件夹路径或者URL），我们在渲染PCD的时候才回去获取和渲染
+            
             for folder in folders:
                 print(folder)
                 # 获取子文件夹中的文件
