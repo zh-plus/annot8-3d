@@ -11,21 +11,21 @@
         <div v-if="currentLevel === 1">
           <ul class="directory-list">
             <li v-for="project in treeData.projects" :key="project.name">
-              <button @click="openProject(project.name)" class="directory-button">📁 {{ project.name }}</button>
+              <button @click="openProject(project.name)" class="directory-button">📁 {{ project.name.split('\\').pop() }}</button>
             </li>
           </ul>
         </div>
         <div v-else-if="currentLevel === 2">
           <ul class="directory-list">
             <li v-for="Episode in currentProject?.Episodes" :key="Episode.name">
-              <button @click="openEpisode(Episode.name)" class="directory-button">📂 {{ Episode.name }}</button>
+              <button @click="openEpisode(Episode.name)" class="directory-button">📂 {{ Episode.name.split('\\').pop() }}</button>
             </li>
           </ul>
         </div>
         <div v-else-if="currentLevel === 3">
           <ul class="directory-list">
             <li v-for="file in currentPointcloudFiles" :key="file">
-              <button @click="openPCD(file)" class="file-item">📄 {{ file.split('/').pop() }}</button>
+              <button @click="openPCD(file)" class="file-item">📄 {{ file.split('\\').pop() }}</button>
             </li>
           </ul>
         </div>
@@ -40,6 +40,8 @@
 import { File_Anno } from '@/types';
 import { log } from 'console';
 import path from 'path';
+import { constants } from 'buffer';
+import { storeToRefs } from 'pinia';
   const fileStore = useFileStore();
 
   interface PointcloudFile {
@@ -62,6 +64,7 @@ import path from 'path';
   const currentProject = ref<Project | null>(null);
   const currentEpisode = ref<Episode | null>(null);
   const currentPointcloudFiles = ref<string[]>([]);
+
   
   const showDirectory = async () => {
     // assume we get the tree data from the backend
@@ -182,7 +185,7 @@ import path from 'path';
         annotations: []
       }
       fileStore.setSelectedFile(file);
-
+      fileStore.toggleEvent()
     }
     
   };
