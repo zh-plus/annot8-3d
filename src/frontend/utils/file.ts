@@ -1,4 +1,4 @@
-import type {File_Anno,Folder} from '../types/annotation';
+import type {File_Anno,Folder} from '../types';
 import type {Vector3} from 'three'
 
 

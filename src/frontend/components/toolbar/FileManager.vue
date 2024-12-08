@@ -38,7 +38,6 @@
   import axios from 'axios';
   import { useFileStore } from '@/stores/file.ts';
 import { File_Anno } from '@/types';
-import { log } from 'console';
 import path from 'path';
 import { constants } from 'buffer';
 import { storeToRefs } from 'pinia';

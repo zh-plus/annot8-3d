@@ -26,6 +26,7 @@ import {ViewerContext} from "@/types";
 import FileChoose from "@/components/toolbar/FileChoose.vue";
 import {useFileStore} from '@/stores/file.ts'
 import {clearScene} from '@/utils/scene-manager'
+import {useSceneCamera} from "@/stores/scene_camera_control.ts";
 
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。

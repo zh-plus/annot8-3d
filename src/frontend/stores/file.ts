@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import type {File_Anno,Folder} from '../types/annotation';
-import type {Annotation} from '../types/annotation'
+import type {File_Anno,Folder} from '../types';
+import type {Annotation} from '../types'
 import {useAnnotationStore} from './annotation'
 import * as THREE from "three";
 import {transformData} from "../utils/file"
