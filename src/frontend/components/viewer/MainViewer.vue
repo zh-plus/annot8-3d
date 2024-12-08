@@ -165,6 +165,7 @@ watch(
   () => sceneCamera.type, // 监听 Pinia store 中的 type 属性
   (newType, oldType) => {
     console.log('sceneCamera.type changed from', oldType, 'to', newType);
+    // 当 sceneCamera.type 变化时，触发 viewportStore 更新
     if (viewerContext.value) {
       viewportStore.updateMainCameraState(viewerContext.value.cameras[0], viewerContext.value.controls[0]);
     }
