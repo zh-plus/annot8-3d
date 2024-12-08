@@ -3,7 +3,9 @@ import * as THREE from "three";
 import {useRaycaster} from "@/composables/useViewerContext.ts";
 import {computed, nextTick, PropType, reactive, ref, watch, watchEffect} from "vue";
 import type {ViewerContext} from "@/types";
-import {useAnnotationStore, useToolStore} from "@/stores";
+import type {BoxPosition, BoxDimensions, BoxRotation} from "@/stores/types"
+import {useAnnotationStore, useToolStore, useViewportStore} from "@/stores";
+import {useSceneCamera} from "@/stores/scene_camera_control"
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
 import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
@@ -30,7 +32,10 @@ const fileStore = useFileStore();
 const {selectedFile} = storeToRefs(fileStore);
 
 const annotationStore = useAnnotationStore()
+const sceneCamera = useSceneCamera()
+const viewportStore = useViewportStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
+let seal_sphere: THREE.Mesh | null | undefined = null;
 const currentBox = computed(() => annotationStore.currentBox);
 const scene = props.viewerContext.scene
 
@@ -38,15 +43,20 @@ const isKeyAPressed_a = ref(false)
 const isKeyAPressed_d = ref(false)
 const showControlPanel = ref(false)
 
-const boxDimensions = reactive({
+const boxDimensions = reactive<BoxDimensions>({
   width: currentBox.value?.width || 1,
   height: currentBox.value?.height || 1,
   depth: currentBox.value?.depth || 1
 });
-const boxPosition = reactive({
+const boxPosition = reactive<BoxPosition>({
   x: currentBox.value?.x || 0,
   y: currentBox.value?.y || 0,
   z: currentBox.value?.z || 0
+});
+const boxRotation = reactive<BoxRotation>({
+  rotationX: currentBox.value?.rotationX || 0,
+  rotationY: currentBox.value?.rotationY || 0,
+  rotationZ: currentBox.value?.rotationZ || 0
 });
 
 const updateBoxProperties = () => {
@@ -54,7 +64,8 @@ const updateBoxProperties = () => {
     // 检查是否需要更新
     annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
         boxPosition.x, boxPosition.y, boxPosition.z,
-        boxDimensions.width, boxDimensions.height, boxDimensions.depth);
+        boxDimensions.width, boxDimensions.height, boxDimensions.depth,
+        boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
 
     const newGeometry = new THREE.BoxGeometry(
         boxDimensions.width,
@@ -81,6 +92,7 @@ watch([boxDimensions, boxPosition], async () => {
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
+    viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
   }
 }, {deep: true});
 watch(
@@ -130,7 +142,7 @@ const ClickBBox = (event: MouseEvent): void => {
       }
     }
     // 当前选择
-    if (annotation) {
+    if (annotation && sceneCamera.type == 0) {
       console.log("selected annotation: ", annotation)
       annotationStore.selectAnnotation(annotation.id);
       annotationStore.currentBox = annotation;
@@ -143,6 +155,11 @@ const ClickBBox = (event: MouseEvent): void => {
         }
       }
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
+      //切换正交相机
+      sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
+      setTimeout(() => {
+        seal_sphere = sceneCamera.createAdjustableCube()
+      },50);
       // 打开面板
       showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
@@ -150,6 +167,17 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = null
       showControlPanel.value = false;
       annotationStore.selectedAnnotation = null;
+      sceneCamera.reset_observe_camera()
+      if (seal_sphere && sceneCamera.scene) {
+        console.log("should delete sphere")
+        sceneCamera.scene.traverse((object) => {
+          if (object instanceof THREE.Mesh && !(object.geometry instanceof THREE.BoxGeometry)) {
+            sceneCamera.scene?.remove(object);
+          }
+        });
+        seal_sphere = null
+        sceneCamera.boxPosition = {x: 0, y: 0, z: 0}
+      }
     }
   }
 }
@@ -212,6 +240,21 @@ const onMouseUp = (): void => {
   // 停止拖动
   annotationStore.isDrawing = false;
 };
+
+// 鼠标滑轮事件的处理函数
+const onWheel = (event: WheelEvent): void => {
+    if (event.deltaY < 0 && seal_sphere) {
+      // 向上滚动，缩小
+      seal_sphere.scale.set(seal_sphere.scale.x * 0.9091, seal_sphere.scale.y * 0.9091, seal_sphere.scale.z * 0.9091);
+      console.log("Shrinking: ", seal_sphere.scale);
+    } else if (event.deltaY > 0 && seal_sphere) {
+      // 向下滚动，放大
+      seal_sphere.scale.set(seal_sphere.scale.x * 1.1, seal_sphere.scale.y * 1.1, seal_sphere.scale.z * 1.1);
+      console.log("Enlarging: ", seal_sphere.scale);
+    }
+  // 阻止默认行为，避免页面滚动
+  event.preventDefault();
+}
 
 const onKeyDown_a = (event: KeyboardEvent) => {
   if (event.key === 'a') {
@@ -280,6 +323,7 @@ onMounted(() => {
     canvas.addEventListener('mousedown', onMouseDown);
     canvas.addEventListener('mousemove', onMouseMove);
     canvas.addEventListener('mouseup', onMouseUp);
+    canvas.addEventListener('wheel', onWheel)
   }
 })
 
@@ -294,6 +338,7 @@ onBeforeUnmount(() => {
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mouseup', onMouseUp);
+    canvas.removeEventListener('wheel', onWheel)
   }
 })
 
@@ -357,22 +402,22 @@ onBeforeUnmount(() => {
         <v-slider
             v-model="annotationStore.currentBox.x"
             label="X Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.y"
             label="Y Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-slider
             v-model="annotationStore.currentBox.z"
             label="Z Position"
-            min="-100"
-            max="100"
+            min="-10"
+            max="10"
             step="0.1"
         />
         <v-text-field

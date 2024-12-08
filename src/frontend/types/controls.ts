@@ -1,5 +1,5 @@
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls.js"
-import {PerspectiveCamera} from "three";
+import {OrthographicCamera, PerspectiveCamera} from "three";
 
 export interface CameraPosition {
     x: number
@@ -18,7 +18,7 @@ export interface ViewerConstraints {
 
 export interface ViewerSyncConfig {
     viewerId: string
-    controls: OrbitControls
-    camera: PerspectiveCamera
+    controls: OrbitControls[]
+    camera: PerspectiveCamera | OrthographicCamera
     constraints?: ViewerConstraints
 }

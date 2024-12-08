@@ -17,8 +17,11 @@ export interface Annotation {
     z: number
     width: number,
     height: number,
-    depth: number
-    color: number
+    depth: number,
+    color: number,
+    rotationX: number
+    rotationY: number
+    rotationZ: number
 }
 
 export interface File_Anno {

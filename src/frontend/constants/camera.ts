@@ -8,7 +8,7 @@ export const CAMERA_POSITIONS: Record<string, CameraPosition> = {
     main: {x: 0, y: 0, z: 5},
     overhead: {x: 0, y: 5, z: 0},
     side: {x: 5, y: 0, z: 0},
-    rear: {x: 0, y: 0, z: -5}
+    front: {x: 0, y: 0, z: -5}
 } as const
 
 export const CAMERA_SETTINGS = {

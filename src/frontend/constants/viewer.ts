@@ -27,5 +27,5 @@ export const VIEWER_MODES = {
     MAIN: 'main',
     OVERHEAD: 'overhead',
     SIDE: 'side',
-    REAR: 'rear'
+    FRONT: 'front'
 } as const

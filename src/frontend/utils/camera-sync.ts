@@ -14,31 +14,43 @@ export function setupViewerSync(config: ViewerSyncConfig) {
 
     // Explicitly set each constraint property
     if (finalConstraints.minAzimuthAngle !== undefined) {
-        controls.minAzimuthAngle = finalConstraints.minAzimuthAngle
+        for (let i = 0; i < controls.length; i++) {
+            controls[i].minAzimuthAngle = finalConstraints.minAzimuthAngle
+        }
     }
     if (finalConstraints.maxAzimuthAngle !== undefined) {
-        controls.maxAzimuthAngle = finalConstraints.maxAzimuthAngle
+        for (let i = 0; i < controls.length; i++){
+            controls[i].maxAzimuthAngle = finalConstraints.maxAzimuthAngle
+        }
     }
     if (finalConstraints.minPolarAngle !== undefined) {
-        controls.minPolarAngle = finalConstraints.minPolarAngle
+        for (let i = 0; i < controls.length; i++){
+            controls[i].minPolarAngle = finalConstraints.minPolarAngle
+        }
     }
     if (finalConstraints.maxPolarAngle !== undefined) {
-        controls.maxPolarAngle = finalConstraints.maxPolarAngle
+        for (let i = 0; i < controls.length; i++){
+            controls[i].maxPolarAngle = finalConstraints.maxPolarAngle
+        }
     }
     if (finalConstraints.minDistance !== undefined) {
-        controls.minDistance = finalConstraints.minDistance
+        for (let i = 0; i < controls.length; i++){
+            controls[i].minDistance = finalConstraints.minDistance
+        }
     }
     if (finalConstraints.maxDistance !== undefined) {
-        controls.maxDistance = finalConstraints.maxDistance
+        for (let i = 0; i < controls.length; i++){
+            controls[i].maxDistance = finalConstraints.maxDistance
+        }
     }
 
     // Register controls
     viewportStore.registerViewerControls(viewerId, controls)
 
     // Setup control change handlers
-    controls.addEventListener('change', () => {
+    controls[0].addEventListener('change', () => {
         if (viewerId === VIEWER_MODES.MAIN) {
-            viewportStore.updateMainCameraState(camera, controls)
+            viewportStore.updateMainCameraState(camera, controls[0])
         }
     })
 
