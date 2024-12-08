@@ -14,6 +14,7 @@
 
 from fastapi import FastAPI
 
+
 from openapi_server.apis.default_api import router as DefaultApiRouter
 
 app = FastAPI(
@@ -21,5 +22,6 @@ app = FastAPI(
     description="A JWT-Protected API for 3D Object Annotation",
     version="1.0.0",
 )
+
 
 app.include_router(DefaultApiRouter)

@@ -22,18 +22,18 @@ export function setupScene(viewerContext: ViewerContext,path:string) {
         const isPCD = () => path.toLowerCase().endsWith('.pcd');
         const isOBJ = () => path.toLowerCase().endsWith('.obj');
         if (isPCD()) {
-        path ='src/assets/PCD_cloud/drive_33_north_to_south/point_clouds/vehicle_lidar_robosense/' + path  
+        // path ='src/assets/PCD_cloud/drive_33_north_to_south/point_clouds/vehicle_lidar_robosense/' + path  
         console.log(path)
             loadPointCloudFromPCD(path,viewerContext.scene)
         }
         if (isOBJ()){
-            path = 'src/assets/obj_file_demo/0a0f0cf2-3a34-4ba2-b24f-34f361c36b3e/'+path
+            // path = 'src/assets/obj_file_demo/0a0f0cf2-3a34-4ba2-b24f-34f361c36b3e/'+path
             loadPointCloudFromOBJ(path, viewerContext.scene)
         }
         const AnnotationStore = useAnnotationStore()
         const { annotations } = storeToRefs(AnnotationStore); 
-
         annotations.value.forEach((annotation) => {
+          
           const BBox = AnnotationStore.CreatBBox_byPositoin(annotation.x, annotation.y, annotation.z,annotation.label[0],annotation.width, annotation.height,annotation.depth)
           viewerContext.scene.add(BBox)
         });
@@ -41,8 +41,14 @@ export function setupScene(viewerContext: ViewerContext,path:string) {
 }
 
 export function clearScene(scene: THREE.Scene) {
-    while (scene.children.length > 0) {
-      const child = scene.children[0];
+  for (let i = scene.children.length - 1; i >= 0; i--) {
+    const child = scene.children[i];
+
+    // 检查是否是网格平面或坐标轴
+    if (child instanceof THREE.GridHelper || child instanceof THREE.AxesHelper) {
+      continue; // 跳过，不删除
+    }
+
       if (child instanceof THREE.Mesh) {
         // 释放几何体和材质资源
         child.geometry.dispose();
