@@ -73,22 +73,22 @@ const fileStore = useFileStore()
 const {FileListEnabled,selectedFile} = storeToRefs(fileStore)
 const {toggleEvent} = fileStore
 
-
 watch(selectedTool, (newTool) => {
   if (newTool && newTool === 'save') {
     console.log('choose save')
     selectTool(newTool)
     if (selectedFile.value != null){
       const path=selectedFile.value.file.file_path
-      const dsPartMatch = path.match(/\/(ds\d+)\//);
-      if (dsPartMatch) {
-          const dsPart = dsPartMatch[1]; // 获取 'ds0'
-          // 从 'ds0' 中提取数字
-          const numberMatch = dsPart.match(/\d+/);
-          if (numberMatch) {
-              const number = parseInt(numberMatch[0], 10); // 转为数字类型
-              console.log(number); // 输出: 0
-              save_annotations(0,number,selectedFile.value?.annotations,selectedFile.value.file.name)
+      const dsPartMatch = path.match(/ds(\d+)/);
+      const projPartMatch = path.match(/project_(\d+)/);
+      if (dsPartMatch && projPartMatch) {
+          const dsNumber = dsPartMatch[1].match(/\d+/);
+          const projectNumber = projPartMatch[1].match(/\d+/);
+          // 从 'ds0' 和 project_0中提取数字
+          if (dsNumber && projectNumber) {
+            const number = parseInt(dsNumber[0], 10); // 转为数字类型
+            const project_id = parseInt(projectNumber[0], 10);
+              save_annotations(project_id,number,selectedFile.value?.annotations,selectedFile.value.file.name)
           } else {
               console.error("path format uncorrect");
           }

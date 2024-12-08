@@ -46,11 +46,12 @@ export const useFileStore = defineStore('files', {
   },
     async set_file_anno(){
       
-
       if (this.selectedFile) {
           const path=this.selectedFile.file.file_path
-          const dsPartMatch = path.match(/\/(ds\d+)\//);
-          const projPartMatch = path.match(/\/(project_\d+)\//);
+          console.log(path)
+          const dsPartMatch = path.match(/ds(\d+)/);
+          const projPartMatch = path.match(/project_(\d+)/);
+          console.log(projPartMatch)
         if (dsPartMatch && projPartMatch) {
             const dsPart = dsPartMatch[1]; // 获取 'ds0'
             // 从 'ds0' 中提取数字

@@ -3,6 +3,7 @@ import type {Point, PointCloudChunk} from '@/types/point-cloud';
 import {VIEWER_DEFAULTS} from '@/constants'
 import { PCDLoader } from 'three/addons/loaders/PCDLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import path from 'path';
 
 // Generate dummy point cloud data for testing
 export function generateDummyPointCloud(pointCount: number = VIEWER_DEFAULTS.pointBudget / 10): PointCloudChunk {
@@ -89,8 +90,17 @@ export function loadPointCloudFromPCD(filePath: string,scene: any) {
     // };
     // 加载点云模型
     console.log('loadPointCloudFromPCD:',filePath)
+    const startKeyword = 'src';
 
-    loader.load(filePath, function (points) {
+    // 构建正则表达式，匹配从 `src` 开始的部分
+    const regex = new RegExp(`${startKeyword}.*`);
+    
+    // 使用 `match` 方法提取匹配的部分
+    const match = filePath.match(regex);
+    
+    const final_path = match ? match[0] : filePath;
+
+    loader.load(final_path, function (points) {
         
         // 将点云几何居中并绕X轴旋转180度
         // points.geometry.center();

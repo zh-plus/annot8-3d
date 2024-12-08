@@ -52,14 +52,14 @@ def get_token_BearerAuth(credentials: HTTPAuthorizationCredentials = Depends(bea
     :rtype: TokenModel | None
     """
     token = credentials.credentials
-    user_db = load_user_db()
-    for username, user in user_db.items():
-        if user.token == token:
-            return TokenModel(sub=username)
+    # user_db = load_user_db()
+    # for username, user in user_db.items():
+    #     if user.token == token:
+    #         return TokenModel(sub=username)
     
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid token",
-    )
+    # raise HTTPException(
+    #     status_code=status.HTTP_401_UNAUTHORIZED,
+    #     detail="Invalid token",
+    # )
 
 

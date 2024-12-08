@@ -112,7 +112,7 @@ class ProjectApiImpl(BaseDefaultApi):
         label_dir = (
             PROJECT_ROOT / "data" / "projects" / f"project_{project_id}" / "meta.json"
         )
-
+        print(label_dir)
         # Check if the annotations directory exists
         if not label_dir.exists():
             logger.error(f"label directory not found: {label_dir}")

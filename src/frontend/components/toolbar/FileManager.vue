@@ -36,6 +36,7 @@
   import { useFileStore } from '@/stores/file.ts';
 import { File_Anno } from '@/types';
 import { log } from 'console';
+import path from 'path';
   const fileStore = useFileStore();
 
   interface PointcloudFile {
@@ -168,10 +169,11 @@ import { log } from 'console';
       // read pcd file from local
       console.log('Open PCD:', pcdPath);
       // find relative path from the root
-
+      const match = pcdPath.match(/([^\\]+)$/); // 匹配最后的非斜杠部分
+      const fileName = match ? match[1] : '';
       const file: File_Anno= {
         file:{
-          name: pcdPath.split('/').pop() || "",
+          name: fileName,
           file_path: pcdPath
         },
         annotations: []

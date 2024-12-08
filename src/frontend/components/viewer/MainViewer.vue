@@ -120,7 +120,7 @@ useViewer({
     // Generate dummy point cloud / Load point cloud here
     setupScene(viewerContext.value, 'None')
     //annotationStore.initialAnnotation(0,0)
-    fileStore.initialFiles(0)
+    //fileStore.initialFiles(0)
     labelStore.initialLabels(0)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
