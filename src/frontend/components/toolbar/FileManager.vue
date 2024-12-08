@@ -1,6 +1,9 @@
 <template>
     <div>
-      <button @click="showDirectory" class="main-button">File Manager</button>
+      <div class="directory-container">
+        <button @click="showDirectory" class="main-button">File Manager</button>
+      </div>
+      
       <div v-if="treeData" class="directory-container">
         <div v-if="currentLevel > 1">
             <button @click="goBack" class="back-button">⬅️ Go back</button>
@@ -192,10 +195,11 @@ import path from 'path';
     color: rgb(0, 0, 0);
     padding: 15px 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 2px;
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s ease;
+    width: 100%;
   }
   
   .main-button:hover {
@@ -206,19 +210,19 @@ import path from 'path';
     margin-top: 5px;
     padding: 10px;
     background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    
   }
   
   .back-button {
-    background-color: #f0e6d8;
+    background-color: white;
     color: rgb(0, 0, 0);
     padding: 10px 15px;
     border: none;
-    border-radius: 5px;
+    border-radius: 2px;
     cursor: pointer;
     font-size: 14px;
-    margin-bottom: 15px;
+    margin-bottom: 0px;
     transition: background-color 0.3s ease;
     width: 100%;
   }
@@ -233,14 +237,14 @@ import path from 'path';
   }
   
   .directory-button {
-    background-color: #feffff;
+    background-color: white;
     color: rgb(0, 0, 0);
     padding: 10px 15px;
     border: none;
-    border-radius: 5px;
+    border-radius: 2px;
     cursor: pointer;
     font-size: 14px;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
     transition: background-color 0.3s ease;
     width: 100%;
   }

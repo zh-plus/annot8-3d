@@ -72,7 +72,8 @@ const {lgAndUp, mdAndDown} = useDisplay()
   left: 10px; /* Adjust as needed for spacing from the left */
   width: 400px; /* Set a fixed width for the label editor */
   height: auto; /* Adjust height as needed */
-  background-color: white; /* Add a background to distinguish it */
+  /* background-color: rgb(0, 0, 0); Add a background to distinguish it */
+  background: none; /* Remove the background */
   border: 1px solid var(--border-color); /* Optional: Add a border */
   z-index: 10; /* Ensure it is on top of other elements */
   padding: 16px; /* Optional: Add some internal padding */

@@ -93,6 +93,12 @@ const deleteAnnotation = (annotation: any) => {
 </script>
 
 <style scoped>
+.v-container {
+  padding: 0;
+  background-color: white;
+  border-radius: 2px;
+}
+
 .file-list {
   overflow-y: auto; /* 启用垂直滚动条 */
   max-height: 200px; /* 限制高度，确保不会超出视口 */
