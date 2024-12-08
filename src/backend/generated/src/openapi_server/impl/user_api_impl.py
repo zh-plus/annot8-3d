@@ -5,8 +5,8 @@ from openapi_server.apis.default_api_base import BaseDefaultApi
 from openapi_server.models import login_request, login_response, register_request
 from pathlib import Path as FilePath
 from fastapi import HTTPException
-from security_api import load_user_db
-from database import JsonDatabase
+from openapi_server.security_api import load_user_db
+from openapi_server.impl.database import JsonDatabase
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

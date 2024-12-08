@@ -3,7 +3,6 @@ import importlib
 import pkgutil
 
 from openapi_server.apis.default_api_base import BaseDefaultApi
-from openapi_server.impl.database import JSONDatabase
 import openapi_server.impl
 
 from fastapi import (  # noqa: F401
@@ -128,6 +127,18 @@ async def get_projects(
     username = token_BearerAuth.sub
     return await BaseDefaultApi.subclasses[0]().get_projects(username)
 
+@router.get(
+    "/list",
+    responses={
+        200: {"description": "List of user projects"},
+        401: {"description": "Unauthorized - missing or invalid JWT"},
+    },
+    tags=["default"],
+    summary="Get a list of user projects",
+    response_model_by_alias=True,
+)
+async def list_projects():
+    return await BaseDefaultApi.subclasses[1]().list_projects()
 
 @router.get(
     "/projects/{project_id}/episodes",

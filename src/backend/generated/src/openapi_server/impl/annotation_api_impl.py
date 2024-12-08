@@ -99,6 +99,6 @@ class AnnotationApiImpl(BaseDefaultApi):
                 
             except Exception as e:
                 logger.error(f"Error savine annotation file {annot_file.name}: {str(e)}")
-                raise HTTPException(status_code=500, detail=f"Error savine annotation file {annot_file.name}")
+                raise HTTPException(status_code=500, detail=f"Error saving annotation file {annot_file.name}")
 
         

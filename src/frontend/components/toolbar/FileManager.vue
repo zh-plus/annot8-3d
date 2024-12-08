@@ -22,7 +22,7 @@
         <div v-else-if="currentLevel === 3">
           <ul class="directory-list">
             <li v-for="file in currentPointcloudFiles" :key="file">
-              <span class="file-item">📄 {{ file }}</span>
+              <button @click="openPCD(file)" class="file-item">📄 {{ file.split('/').pop() }}</button>
             </li>
           </ul>
         </div>
@@ -32,7 +32,12 @@
   
 <script setup lang="ts">
   import { ref } from 'vue';
-  
+  import axios from 'axios';
+  import { useFileStore } from '@/stores/file.ts';
+import { File_Anno } from '@/types';
+import { log } from 'console';
+  const fileStore = useFileStore();
+
   interface PointcloudFile {
     name: string;
     pointcloudFiles: string[];
@@ -54,51 +59,64 @@
   const currentEpisode = ref<Episode | null>(null);
   const currentPointcloudFiles = ref<string[]>([]);
   
-  const showDirectory = () => {
+  const showDirectory = async () => {
     // assume we get the tree data from the backend
     // a demo tree data
-    treeData.value = {
-      projects: [
-        {
-          name: 'project_1',
-          Episodes: [
-            {
-              name: 'ds0',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-          ],
+    const token = localStorage.getItem('token');
+    const res = await axios.get(
+      'http://127.0.0.1:8080/projects/list',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // 添加认证头部
+          "Content-Type": "application/json", // 设置请求体类型
         },
-        {
-          name: 'project_2',
-          Episodes: [
-            {
-              name: 'ds1',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-            {
-              name: 'ds2',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-            {
-              name: 'ds3',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-            {
-              name: 'ds4',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-            {
-              name: 'ds5',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-            {
-              name: 'ds6',
-              pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
-            },
-          ],
-        },
-      ],
-    };
+      }
+    );
+
+    // treeData.value = {
+    //   projects: [
+    //     {
+    //       name: 'project_1',
+    //       Episodes: [
+    //         {
+    //           name: 'ds0',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //       ],
+    //     },
+    //     {
+    //       name: 'project_2',
+    //       Episodes: [
+    //         {
+    //           name: 'ds1',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //         {
+    //           name: 'ds2',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //         {
+    //           name: 'ds3',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //         {
+    //           name: 'ds4',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //         {
+    //           name: 'ds5',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //         {
+    //           name: 'ds6',
+    //           pointcloudFiles: ['000021.pcd', '000022.pcd', '000023.pcd'],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // };
+    treeData.value = res['data'];
+    console.log(treeData.value);
   };
   
   const openProject = (projectName: string) => {
@@ -130,6 +148,38 @@
         currentLevel.value = 1;
         currentProject.value = null;
     }
+  };
+
+  const openPCD = (pcdPath: string) => {
+    // axios.get(pcdPath).then((response) => {
+    //   console.log(response);
+    // });
+    const userConfirmed = window.confirm("If you select file, all unsaved changes will be lost!");
+    if (!userConfirmed) {
+      return;
+    }
+    if (pcdPath.startsWith('http')) {
+      // request for pcd file from server
+      axios.get(pcdPath).then((response) => {
+        console.log(response);
+      });
+    }
+    else {
+      // read pcd file from local
+      console.log('Open PCD:', pcdPath);
+      // find relative path from the root
+
+      const file: File_Anno= {
+        file:{
+          name: pcdPath.split('/').pop() || "",
+          file_path: pcdPath
+        },
+        annotations: []
+      }
+      fileStore.setSelectedFile(file);
+
+    }
+    
   };
 
 </script>
@@ -205,6 +255,7 @@
     border-radius: 5px;
     font-size: 14px;
     margin-bottom: 5px;
+    width: 100%;
   }
   </style>
   

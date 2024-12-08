@@ -105,9 +105,9 @@ async def get_annotations(
     project_id: StrictInt = Path(..., description=""),
     episode_id: StrictInt = Path(..., description=""),
     file_name: StrictStr =  Path(..., description=""),
-    token_BearerAuth: TokenModel = Security(
-        get_token_BearerAuth
-    ),
+    # token_BearerAuth: TokenModel = Security(
+    #     get_token_BearerAuth
+    # ),
 ) -> List[Annotation]:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")

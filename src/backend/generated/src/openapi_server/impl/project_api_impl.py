@@ -15,7 +15,7 @@ PROJECT_ROOT = FilePath(__file__).parent.parent.parent.parent.parent
 
 class ProjectApiImpl(BaseDefaultApi):
 
-    async def get_all_PCDFiles_in_project(self, project_id: int):
+    async def get_all_PCDFiles(self, project_id: int):
         # Define the annotations directory path
         # TODO 考虑如何更好的组织文件夹结构
         # 我们应该将用户的所有project都放在一个文件夹下，然后根据user_id去找到对应的用户文件夹
@@ -61,7 +61,7 @@ class ProjectApiImpl(BaseDefaultApi):
 
         return all_files
 
-    async def get_projects(self):
+    async def list_projects(self):
         projects_dir = PROJECT_ROOT / "data" / "projects"
         if not projects_dir.exists():
             logger.error(f"project directory not found: {projects_dir}")
@@ -94,9 +94,11 @@ class ProjectApiImpl(BaseDefaultApi):
                     }
                     pointcloud_dir = os.path.join(episode, "pointcloud")
                     if os.path.exists(pointcloud_dir):
-                        episode_dict["pointcloudFiles"] = [
+                        pcds = [
                             f for f in os.listdir(pointcloud_dir) if f.endswith(".pcd")
                         ]
+                        for pcd in pcds:
+                            episode_dict["pointcloudFiles"].append(os.path.join(pointcloud_dir, pcd))
                     proj_dict["Episodes"].append(episode_dict)
                 folder["projects"].append(proj_dict)
 

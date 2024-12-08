@@ -88,6 +88,8 @@ export function loadPointCloudFromPCD(filePath: string,scene: any) {
     //     max: [-Infinity, -Infinity, -Infinity] as [number, number, number]
     // };
     // 加载点云模型
+    console.log('loadPointCloudFromPCD:',filePath)
+
     loader.load(filePath, function (points) {
         
         // 将点云几何居中并绕X轴旋转180度
