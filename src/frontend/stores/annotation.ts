@@ -4,6 +4,7 @@ import type {Box} from './types'
 import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
+import axios from 'axios';
 import {useFileStore} from '@/stores/file';
 import * as THREE from "three";
 

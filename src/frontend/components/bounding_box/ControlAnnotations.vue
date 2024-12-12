@@ -92,6 +92,9 @@ watch([boxDimensions, boxPosition], async () => {
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
+    if(sceneCamera.type == 1){
+      sceneCamera.set_observe_camera({x: boxPosition.x, y: boxPosition.y, z: boxPosition.z}, boxRotation)
+    }
     viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
   }
 }, {deep: true});

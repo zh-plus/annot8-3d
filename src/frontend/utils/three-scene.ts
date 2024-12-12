@@ -5,7 +5,6 @@ import {CONTROLS, THREE_SCENE_COLORS, VIEWER_CONSTRAINTS, VIEWER_DEFAULTS} from 
 import {useSceneCamera} from '@/stores/scene_camera_control'
 import {OrthographicCamera} from "three";
 
-
 export function initializeScene(
     canvas: HTMLCanvasElement,
     container: HTMLElement,
@@ -13,7 +12,6 @@ export function initializeScene(
     viewerId: string
     // main
 ): ViewerContext {
-
     const sceneCamera = useSceneCamera()
     const renderer = new THREE.WebGLRenderer({
         canvas,

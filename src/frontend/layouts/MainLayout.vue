@@ -9,10 +9,8 @@
         <!-- Main View -->
         <div class="main-section">
           <main-viewer/>
-            <!-- Label controller-->
-        <div class="label-controller">
-          <label-controller/>
         </div>
+
         <!-- Side Views and Label Editor Container -->
         <div class="side-section" v-if="sceneCamera.scene">
           <!-- Side Views -->
@@ -38,11 +36,9 @@
           </div>
         </div>
         <!-- Label Editor -->
-
         <div class="label-editor">
           <label-editor/>
         </div>
-      </div>
     </v-main>
   </v-app>
 </template>
@@ -51,6 +47,7 @@
 import {useDisplay} from 'vuetify'
 import ToolBar from '@/components/toolbar/ToolBar.vue'
 import MainViewer from '@/components/viewer/MainViewer.vue'
+import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
 import {useViewportStore} from '@/stores'
 import {useSceneCamera} from '@/stores/scene_camera_control'

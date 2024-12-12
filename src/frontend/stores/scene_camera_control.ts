@@ -103,7 +103,7 @@ export const useSceneCamera = defineStore('scene', {
                 controls[0].update()
             } else {
                 controls[1].object.position.set(
-                    this.boxPosition.x + (forwardDirection.x + rightDirection.x) * distance,
+                    this.boxPosition.x + (forwardDirection.x + rightDirection.x) * distance * 1.05,
                     this.boxPosition.y,
                     this.boxPosition.z
                 )
@@ -156,7 +156,7 @@ export const useSceneCamera = defineStore('scene', {
                     this.current_head_camera.up.set(0, -1, 0); // 设置相机的 "上" 方向
                     controls[1].object.position.set(
                         this.boxPosition.x,
-                        this.boxPosition.y + this.distance,
+                        this.boxPosition.y + this.distance * 1.05,
                         this.boxPosition.z
                     )
                     controls[1].target.set(
@@ -209,7 +209,7 @@ export const useSceneCamera = defineStore('scene', {
                 controls[1].object.position.set(
                     this.boxPosition.x,
                     this.boxPosition.y,
-                    this.boxPosition.z + this.distance
+                    this.boxPosition.z + this.distance * 1.05
                 )
                 controls[1].target.set(
                     this.boxPosition.x,

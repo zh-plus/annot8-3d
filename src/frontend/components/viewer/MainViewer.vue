@@ -9,6 +9,7 @@
         v-if="viewerContext"
         :viewerContext="viewerContext"
         @isDrag="handleIsDrag"/>
+    <FileChoose v-if="viewerContext" :viewerContext="viewerContext"/>
   </div>
 </template>
 
@@ -23,7 +24,9 @@ import {CAMERA_POSITIONS} from '@/constants'
 import {setupScene,clearScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
-import {useSceneCamera} from "@/stores/scene_camera_control"
+import FileChoose from "@/components/toolbar/FileChoose.vue";
+import {useSceneCamera} from "@/stores/scene_camera_control.ts";
+
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -35,8 +38,6 @@ const sceneCamera = useSceneCamera()
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
 const labelStore = useLabelStore()
-const fileStore = useFileStore()
-const {selectedFile} = storeToRefs(fileStore)
 // 创建响应式 viewerContext
 const viewerContext = ref<ViewerContext | null>(null)
 // 使用 useViewer 获取并初始化 viewerContext
@@ -49,13 +50,17 @@ const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 const dragStatus = ref(false)
 const handleIsDrag = (newStatus: boolean | undefined) => {
-    if (newStatus !== undefined) {
+  if (newStatus !== undefined) {
     dragStatus.value = newStatus
     console.log('Dragging is checked by MainViewer:', dragStatus.value)
   } else {
     console.log('Drag status is undefined')
   }
 }
+
+const fileStore = useFileStore();
+const {selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
+
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -142,7 +147,7 @@ watch(selectedFile, async (newFile, oldFile) => {
   if (newFile !== oldFile && viewerContext.value && newFile !== null) {
     clearScene(viewerContext.value.scene);
     console.log("Selected file changed:", newFile);
-    
+
     // Wait for fileStore.set_file_anno() to finish
     await fileStore.set_file_anno();
     // After set_file_anno() completes, call cc
@@ -159,6 +164,7 @@ watch(
   () => sceneCamera.type, // 监听 Pinia store 中的 type 属性
   (newType, oldType) => {
     console.log('sceneCamera.type changed from', oldType, 'to', newType);
+    // 当 sceneCamera.type 变化时，触发 viewportStore 更新
     if (viewerContext.value) {
       viewportStore.updateMainCameraState(viewerContext.value.cameras[0], viewerContext.value.controls[0]);
     }
