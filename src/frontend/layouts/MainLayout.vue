@@ -4,29 +4,27 @@
       <div class="layout-grid">
         <!-- Toolbar -->
         <tool-bar/>
-
-        <!-- Main View -->
-        <div class="main-section">
-          <main-viewer/>
-        </div>
-
-        <!-- Side Views and Label Editor Container -->
-        <div class="side-section" v-if="sceneCamera.scene">
+        <div class="total-section">
+          <!-- Main View -->
+          <div class="main-section">
+            <main-viewer/>
+          </div>
+          <!-- Side Views and Label Editor Container -->
           <!-- Side Views -->
-          <div class="side-views">
-            <div class="auxiliary-view-container">
+          <div class="side-views" v-if="sceneCamera.scene">
+            <div class="auxiliary-view-container-over">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.overhead"
                   label="Overhead View"
               />
             </div>
-            <div class="auxiliary-view-container">
+            <div class="auxiliary-view-container-side">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.side"
                   label="Side View"
               />
             </div>
-            <div class="auxiliary-view-container">
+            <div class="auxiliary-view-container-front">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.front"
                   label="Front View"
@@ -34,7 +32,7 @@
             </div>
           </div>
         </div>
-        <!-- Label Editor -->
+<!--         Label Editor -->
         <div class="label-editor">
           <label-editor/>
         </div>
@@ -61,13 +59,27 @@ const {lgAndUp, mdAndDown} = useDisplay()
 <style scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: calc(100% - var(--side-view-width) - var(--label-editor-width)) var(--side-view-width) var(--label-editor-width);
-  grid-template-areas: "main side label-edit";
+  grid-template-columns: 1fr var(--label-editor-width);
+  grid-template-areas:
+    "total_view label-edit";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   position: relative;
   margin-left: var(--toolbar-width);
+}
+
+.total-section {
+  grid-area: total_view;
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  grid-template-areas:
+  "main"
+  "side-sel";
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .main-section {
@@ -82,27 +94,53 @@ const {lgAndUp, mdAndDown} = useDisplay()
 }
 
 .side-section {
-  grid-area: side;
+  grid-area: side-sel;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
   border-left: 1px solid var(--border-color);
   background-color: v-bind('UI_COLORS.surface');
 }
 
 .side-views {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
+  grid-area: side-sel;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+  "overhead side front";
+  display: grid;
+  flex-direction: row;
 }
 
-.auxiliary-view-container {
+.auxiliary-view-container-over {
+  grid-area: overhead;
   flex: 1;
   border-bottom: 1px solid v-bind('UI_COLORS.border');
-  aspect-ratio: var(--aspect-ratio);
+  aspect-ratio: var(calc(4 / 3));
 }
 
-.auxiliary-view-container:last-child {
+.auxiliary-view-container-over:last-child {
+  border-bottom: none;
+}
+
+.auxiliary-view-container-side {
+  grid-area: side;
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-side:last-child {
+  border-bottom: none;
+}
+
+.auxiliary-view-container-front {
+  grid-area: front;
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-over:last-child {
   border-bottom: none;
 }
 
@@ -110,6 +148,8 @@ const {lgAndUp, mdAndDown} = useDisplay()
   grid-area: label-edit;
   flex: 1;
   border-left: 1px solid var(--border-color);
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Responsive layouts */

@@ -4,7 +4,6 @@ import type {Box} from './types'
 import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
-import axios from 'axios';
 import {useFileStore} from '@/stores/file';
 import * as THREE from "three";
 
@@ -80,6 +79,7 @@ export const useAnnotationStore = defineStore('annotation', {
             if (intersects.length > 0) {
                 const intersection = intersects[0]
                 boundingBox.position.copy(intersection.point)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: intersection.point.x,
                     z: intersection.point.z,
@@ -94,6 +94,7 @@ export const useAnnotationStore = defineStore('annotation', {
                 })
             } else {
                 boundingBox.position.set(0, 0, 0)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: 0,
                     z: 0,
@@ -129,22 +130,22 @@ export const useAnnotationStore = defineStore('annotation', {
             // 创建边界框
             const geometry = new THREE.BoxGeometry(width, height, depth)
             const edges = new THREE.EdgesGeometry(geometry)
-            let color = 0x00ff00
+            let color = 0xffffff
             // 与label tool关联后需要修改
-            // switch (label) {
-            //     case 'Car':
-            //         color = 0x00ff00;
-            //         break;
-            //     case 'Pedestrian':
-            //         color = 0xff0000;
-            //         break;
-            //     case 'Cyclist':
-            //         color = 0x0000ff;
-            //         break;
-            //     case 'Traffic Sign':
-            //         color = 0xffff00;
-            //         break;
-            // }
+            switch (label) {
+                case 'Car':
+                    color = 0x00ff00;
+                    break;
+                case 'Pedestrian':
+                    color = 0xff0000;
+                    break;
+                case 'Cyclist':
+                    color = 0x0000ff;
+                    break;
+                case 'Traffic Sign':
+                    color = 0xffff00;
+                    break;
+            }
             const material = new THREE.LineBasicMaterial({color: color})
             const boundingBox = new THREE.LineSegments(edges, material)
             boundingBox.position.set(x, y, z)
@@ -152,12 +153,8 @@ export const useAnnotationStore = defineStore('annotation', {
         },
         removeAnnotation(id: string) {
             const index = this.annotations.findIndex(a => a.id === id)
-            // if (fileStore.selectedFile!= null){
-            // fileStore.selectedFile.annotations=annotations
-            // }
             if (index !== -1) {
                 this.annotations.splice(index, 1)
-                console.log("annotation removed:", this.annotations)
                 if (this.selectedAnnotation === id) {
                     this.selectedAnnotation = null
                 }

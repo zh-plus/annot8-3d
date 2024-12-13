@@ -9,25 +9,20 @@
         v-if="viewerContext"
         :viewerContext="viewerContext"
         @isDrag="handleIsDrag"/>
-    <FileChoose v-if="viewerContext" :viewerContext="viewerContext"/>
   </div>
 </template>
 
 <script lang="ts" setup>
 import {ref, watch, watchEffect} from 'vue'
 import * as THREE from 'three'
-import {useAnnotationStore, useToolStore, useViewportStore,useLabelStore} from '@/stores'
+import {useAnnotationStore, useToolStore, useViewportStore} from '@/stores'
 import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS} from '@/constants'
 import {setupScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
-import FileChoose from "@/components/toolbar/FileChoose.vue";
-import {useFileStore} from '@/stores/file.ts'
-import {clearScene} from '@/utils/scene-manager'
-import {useSceneCamera} from "@/stores/scene_camera_control.ts";
-
+import {useSceneCamera} from "@/stores/scene_camera_control"
 
 //containerRef 和 canvasRef 都是 Vue 3 的响应式引用，用于访问 DOM 元素（容器和画布）。它们在后续的交互和渲染中很有用。
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -38,7 +33,7 @@ const sceneCamera = useSceneCamera()
 //selectedTool 是从 toolStore 获取的当前选中的工具，它会动态显示在视图中。
 const toolStore = useToolStore()
 const {currentTool: selectedTool} = storeToRefs(toolStore)
-const labelStore = useLabelStore()
+
 // 创建响应式 viewerContext
 const viewerContext = ref<ViewerContext | null>(null)
 // 使用 useViewer 获取并初始化 viewerContext
@@ -51,17 +46,13 @@ const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 const dragStatus = ref(false)
 const handleIsDrag = (newStatus: boolean | undefined) => {
-  if (newStatus !== undefined) {
+    if (newStatus !== undefined) {
     dragStatus.value = newStatus
     console.log('Dragging is checked by MainViewer:', dragStatus.value)
   } else {
     console.log('Drag status is undefined')
   }
 }
-
-const fileStore = useFileStore();
-const {selectedFile} = storeToRefs(fileStore); // 解构出 selectedFile
-
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -115,9 +106,6 @@ useViewer({
     viewerContext.value = context  // 将初始化的 context 设置为响应式的 viewerContext
     // Generate dummy point cloud / Load point cloud here
     setupScene(viewerContext.value, 'None')
-    //annotationStore.initialAnnotation(0,0)
-    //fileStore.initialFiles(0)
-    labelStore.initialLabels(0)
     // Add event listeners
     canvasRef.value!.addEventListener('pointerdown', onPointerDown)
     canvasRef.value!.addEventListener('pointermove', onPointerMove)
@@ -142,20 +130,6 @@ useViewer({
     }
   }
 })
-
-// 响应selectfile的更新
-watch(selectedFile, async (newFile, oldFile) => {
-  if (newFile !== oldFile && viewerContext.value && newFile !== null) {
-    clearScene(viewerContext.value.scene);
-    console.log("Selected file changed:", newFile);
-
-    // Wait for fileStore.set_file_anno() to finish
-    await fileStore.set_file_anno();
-    // After set_file_anno() completes, call cc
-    setupScene(viewerContext.value, newFile.file.file_path);
-    console.log("Selected file", newFile.file.file_path);
-  }
-});
 
 // watcher 用于确保组件每次更新时，响应式的 viewerContext 被正确传递到子组件
 watchEffect(() => {
