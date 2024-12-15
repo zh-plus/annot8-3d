@@ -79,6 +79,7 @@ export const useAnnotationStore = defineStore('annotation', {
             if (intersects.length > 0) {
                 const intersection = intersects[0]
                 boundingBox.position.copy(intersection.point)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: intersection.point.x,
                     z: intersection.point.z,
@@ -93,6 +94,7 @@ export const useAnnotationStore = defineStore('annotation', {
                 })
             } else {
                 boundingBox.position.set(0, 0, 0)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: 0,
                     z: 0,

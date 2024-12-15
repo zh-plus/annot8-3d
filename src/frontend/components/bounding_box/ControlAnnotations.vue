@@ -72,6 +72,7 @@ const updateBoxProperties = () => {
         boxPosition.y,
         boxPosition.z
     );
+    newBox.rotation.set(boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
     // 替换旧对象
     scene.remove(currentlySelectedBox);
     currentlySelectedBox.geometry.dispose(); // 释放旧几何体资源
@@ -85,6 +86,9 @@ watch([boxDimensions, boxPosition], async () => {
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
+    if(sceneCamera.type == 1){
+      sceneCamera.set_observe_camera({x: boxPosition.x, y: boxPosition.y, z: boxPosition.z}, boxRotation)
+    }
     viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
   }
 }, {deep: true});
@@ -98,6 +102,9 @@ watch(
         boxPosition.x = newBox.x;
         boxPosition.y = newBox.y;
         boxPosition.z = newBox.z;
+        boxRotation.rotationX = newBox.rotationX;
+        boxRotation.rotationY = newBox.rotationY;
+        boxRotation.rotationZ = newBox.rotationZ;
       }
     },
     {deep: true}
@@ -159,6 +166,7 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = null
       showControlPanel.value = false;
       annotationStore.selectedAnnotation = null;
+      annotationStore.currentBox = null;
       sceneCamera.reset_observe_camera()
       if (seal_sphere && sceneCamera.scene) {
         console.log("should delete sphere")
@@ -333,102 +341,126 @@ onBeforeUnmount(() => {
 <template>
   <!-- 控制面板 -->
   <div
-      v-if="showControlPanel && annotationStore.currentBox"
-      class="control-panel"
-      style="position: absolute; top: 10px; left: 10px; z-index: 10;"
+    v-if="showControlPanel && annotationStore.currentBox"
+    class="control-panel"
+    style="position: absolute; top: 10px; left: 10px; z-index: 10; font-size: 12px; width: 250px;"
   >
-    <v-card class="pa-3" elevation="5" style="width: 300px; margin-bottom: 10px;">
-      <v-card-title>Adjust Size</v-card-title>
-      <v-card-text>
-        <!-- 尺寸调整 -->
-        <v-slider
-            v-model="annotationStore.currentBox.width"
-            label="Width"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.height"
-            label="Height"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.depth"
-            label="Depth"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.width"
-            label="Width"
-            step="0.1"
-            type="number"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.height"
-            label="Height"
-            step="0.1"
-            type="number"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.depth"
-            label="Depth"
-            step="0.1"
-            type="number"
-        />
-      </v-card-text>
-    </v-card>
-    <v-card class="pa-3" elevation="5" style="width: 300px;">
+<!--    <v-card class="pa-3" elevation="5" style="width: 250px; margin-bottom: 10px; font-size: 12px;">-->
+<!--      <v-card-title>Adjust Size</v-card-title>-->
+<!--      <v-card-text>-->
+<!--        &lt;!&ndash; 尺寸调整 &ndash;&gt;-->
+<!--        <v-slider-->
+<!--          v-model="annotationStore.currentBox.width"-->
+<!--          label="Width"-->
+<!--          min="0.1"-->
+<!--          max="10"-->
+<!--          step="0.1"-->
+<!--          dense-->
+<!--        />-->
+<!--        <v-slider-->
+<!--          v-model="annotationStore.currentBox.height"-->
+<!--          label="Height"-->
+<!--          min="0.1"-->
+<!--          max="10"-->
+<!--          step="0.1"-->
+<!--          dense-->
+<!--        />-->
+<!--        <v-slider-->
+<!--          v-model="annotationStore.currentBox.depth"-->
+<!--          label="Depth"-->
+<!--          min="0.1"-->
+<!--          max="10"-->
+<!--          step="0.1"-->
+<!--          dense-->
+<!--        />-->
+<!--        <v-text-field-->
+<!--          v-model="annotationStore.currentBox.width"-->
+<!--          label="Width"-->
+<!--          step="0.1"-->
+<!--          type="number"-->
+<!--          dense-->
+<!--        />-->
+<!--        <v-text-field-->
+<!--          v-model="annotationStore.currentBox.height"-->
+<!--          label="Height"-->
+<!--          step="0.1"-->
+<!--          type="number"-->
+<!--          dense-->
+<!--        />-->
+<!--        <v-text-field-->
+<!--          v-model="annotationStore.currentBox.depth"-->
+<!--          label="Depth"-->
+<!--          step="0.1"-->
+<!--          type="number"-->
+<!--          dense-->
+<!--        />-->
+<!--      </v-card-text>-->
+<!--    </v-card>-->
+
+    <v-card class="pa-3" elevation="5" style="width: 250px;">
       <v-card-title>Adjust Position</v-card-title>
       <v-card-text>
         <!-- 位置调整 -->
         <v-slider
-            v-model="annotationStore.currentBox.x"
-            label="X Position"
-            min="-10"
-            max="10"
-            step="0.1"
+          v-model="annotationStore.currentBox.x"
+          label="X"
+          min="-10"
+          max="10"
+          step="0.1"
+          dense
         />
         <v-slider
-            v-model="annotationStore.currentBox.y"
-            label="Y Position"
-            min="-10"
-            max="10"
-            step="0.1"
+          v-model="annotationStore.currentBox.y"
+          label="Y"
+          min="-10"
+          max="10"
+          step="0.1"
+          dense
         />
         <v-slider
-            v-model="annotationStore.currentBox.z"
-            label="Z Position"
-            min="-10"
-            max="10"
-            step="0.1"
+          v-model="annotationStore.currentBox.z"
+          label="Z"
+          min="-10"
+          max="10"
+          step="0.1"
+          dense
         />
         <v-text-field
-            v-model="annotationStore.currentBox.x"
-            label="X Position"
-            step="0.1"
-            type="number"
+          v-model="annotationStore.currentBox.x"
+          label="X"
+          step="0.1"
+          type="number"
+          dense
         />
         <v-text-field
-            v-model="annotationStore.currentBox.y"
-            label="Y Position"
-            step="0.1"
-            type="number"
+          v-model="annotationStore.currentBox.y"
+          label="Y"
+          step="0.1"
+          type="number"
+          dense
         />
         <v-text-field
-            v-model="annotationStore.currentBox.z"
-            label="Z Position"
-            step="0.1"
-            type="number"
+          v-model="annotationStore.currentBox.z"
+          label="Z"
+          step="0.1"
+          type="number"
+          dense
         />
       </v-card-text>
     </v-card>
   </div>
 </template>
+
+<style scoped>
+.control-panel {
+  font-size: 6px; /* 缩小字体 */
+}
+.v-slider,
+.v-text-field {
+  font-size: 12px; /* 缩小控件的字体 */
+}
+</style>
+
 
 <style scoped>
 .control-panel {

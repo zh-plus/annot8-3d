@@ -1,6 +1,7 @@
 :root {
     --toolbar-width: 56px;
     --side-view-width: 16%;
+    --bottom-view-width: 20%;
     --label-editor-width: 300px;
     --border-color: var(--border-color);
     --aspect-ratio: calc(16 / 9);
