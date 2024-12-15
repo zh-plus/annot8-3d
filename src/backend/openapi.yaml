@@ -46,7 +46,11 @@ paths:
           description: Registration failed
       summary: Register a new user
       x-openapi-router-controller: openapi_server.controllers.default_controller
+<<<<<<< HEAD
       
+=======
+ 
+>>>>>>> origin/backend
   /projects:
     get:
       operationId: get_projects
@@ -88,6 +92,7 @@ paths:
       summary: Create a new project
       x-openapi-router-controller: openapi_server.controllers.project_controller
 
+<<<<<<< HEAD
   /projects/{project_id}/annotations:
     get:
       operationId: get_annotations
@@ -106,13 +111,244 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Annotation'
+=======
+  /projects/{project_id}/episodes:
+    get:
+      operationId: list_episodes
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Episode'
+                type: array
+          description: List of episodes for the specified project
+>>>>>>> origin/backend
         "401":
           description: Unauthorized - missing or invalid JWT
         "404":
           description: Project not found
       security:
+<<<<<<< HEAD
         - BearerAuth: []
       summary: Get annotations for a project
+=======
+      - BearerAuth: []
+      summary: Get a list of episodes for a project
+      x-openapi-router-controller: openapi_server.controllers.episode_controller
+
+    post:
+      operationId: create_episode
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EpisodeRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Episode'
+          description: Episode created successfully
+        "401":
+          description: Unauthorized - missing or invalid JWT
+        "404":
+          description: Project not found
+      security:
+      - BearerAuth: []
+      summary: Create a new episode for a specific project
+      x-openapi-router-controller: openapi_server.controllers.episode_controller
+
+  /projects/{project_id}/episodes/{episode_id}:
+    get:
+      operationId: get_episode
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: episode_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Episode'
+          description: Details of the specified episode
+        "401":
+          description: Unauthorized - missing or invalid JWT
+        "404":
+          description: Project or Episode not found
+      security:
+      - BearerAuth: []
+      summary: Get details of a specific episode within a project
+      x-openapi-router-controller: openapi_server.controllers.episode_controller
+
+  /projects/{project_id}/episodes/{episode_id}/annotations:
+    get:
+      operationId: get_annotations
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: episode_id
+        required: true
+        schema:
+          type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Annotation'
+                type: array
+          description: List of annotations for the specified episode in a project
+        "401":
+          description: Unauthorized - missing or invalid JWT
+        "404":
+          description: Project or Episode not found
+      security:
+      - BearerAuth: []
+      summary: Get annotations for a specific episode within a project
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /projects/{project_id}/episodes/{episode_id}/annotations/create:
+    post:
+      operationId: create_annotation
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: episode_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationRequest'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+          description: Annotation created successfully
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+      - BearerAuth: []
+      summary: Create a new annotation for a specific episode
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+  /projects/{project_id}/episodes/{episode_id}/annotations/{annotation_id}:
+    put:
+      operationId: update_annotation
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: episode_id
+        required: true
+        schema:
+          type: integer
+      - in: path
+        name: annotation_id
+        required: true
+        schema:
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationUpdateRequest'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Annotation'
+          description: Annotation updated successfully
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+      security:
+      - BearerAuth: []
+      summary: Update a specific annotation within an episode
+      x-openapi-router-controller: openapi_server.controllers.annotation_controller
+
+    delete:
+      operationId: delete_annotation
+      parameters:
+      - in: path
+        name: project_id
+        required: true
+        schema:
+          type: integer
+        description: The ID of the project
+      - in: path
+        name: episode_id
+        required: true
+        schema:
+          type: integer
+        description: The ID of the episode
+      - in: path
+        name: annotation_id
+        required: true
+        schema:
+          type: integer
+        description: The ID of the annotation to delete
+      responses:
+        "200":
+          description: Annotation deleted successfully
+        "400":
+          description: Bad request - missing or invalid data
+        "401":
+          description: Unauthorized - missing or invalid JWT
+        "404":
+          description: Project, Episode, or Annotation not found
+      security:
+      - BearerAuth: []
+      summary: Delete a specific annotation within an episode
+>>>>>>> origin/backend
       x-openapi-router-controller: openapi_server.controllers.annotation_controller
 
   /projects/upload_pcd:
@@ -173,6 +409,7 @@ paths:
         - BearerAuth: []
       x-openapi-router-controller: openapi_server.controllers.project_controller
 
+<<<<<<< HEAD
   /annotations/create:
     post:
       summary: Create a new annotation for a specific .pcd file in a project
@@ -277,6 +514,8 @@ paths:
         - BearerAuth: []
       x-openapi-router-controller: openapi_server.controllers.annotation_controller
 
+=======
+>>>>>>> origin/backend
 components:
   schemas:
     RegisterRequest:
@@ -328,6 +567,43 @@ components:
       title: LoginResponse
       type: object
 
+<<<<<<< HEAD
+=======
+    Episode:
+      example:
+        id: 1
+        name: Episode 1
+        description: Sequence of frames for building facade
+      properties:
+        id:
+          description: Unique identifier for the episode
+          type: integer
+        name:
+          description: Name of the episode
+          type: string
+        description:
+          description: Description of the episode
+          type: string
+      title: Episode
+      type: object
+
+    EpisodeRequest:
+      example:
+        name: Episode 1
+        description: Sequence of frames for building facade
+      properties:
+        name:
+          description: Name of the episode
+          type: string
+        description:
+          description: Description of the episode
+          type: string
+      required:
+      - name
+      title: EpisodeRequest
+      type: object
+
+>>>>>>> origin/backend
     Project:
       example:
         id: 1
@@ -343,6 +619,13 @@ components:
         description:
           type: string
           description: Description of the project
+<<<<<<< HEAD
+=======
+        episodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Episode'
+>>>>>>> origin/backend
       title: Project
       type: object
 
@@ -381,6 +664,12 @@ components:
     AnnotationRequest:
       type: object
       properties:
+<<<<<<< HEAD
+=======
+        episode_id:
+          description: The ID of the episode to annotate
+          type: integer
+>>>>>>> origin/backend
         pcd_file_id:
           type: integer
           description: The ID of the .pcd file to annotate
@@ -422,11 +711,19 @@ components:
             z:
               type: number
       required:
+<<<<<<< HEAD
+=======
+        - episode_id
+>>>>>>> origin/backend
         - pcd_file_id
         - label
         - geometry
         - position
       example:
+<<<<<<< HEAD
+=======
+        episode_id: 1
+>>>>>>> origin/backend
         pcd_file_id: 1
         label: "Car"
         geometry: "cube"
