@@ -65,56 +65,53 @@ export async function save_annotations(projectId: number, episode: number, annot
 }
 
 
-export async function get_annotations(projectId: number, episode: number, file_name: string): Promise<Annotation[]> {
+
+export async function get_annotations(projectId: number,episode:number,file_name:string):Promise<Annotation[]>{
     try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-            `http://127.0.0.1:8080/annotations/projects/${projectId}/episodes/${episode}/annotations/${file_name}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-        const got_annotations = res.data
-        //之前没有规定Annotation类型
-        const annotations: Annotation[] = got_annotations.map((annotation: Annotation) => ({
-            id: annotation.id,
-            type: annotation.type,
-            label: [annotation.label],
-            points: [],
-            x: annotation.x,
-            y: annotation.y,
-            z: annotation.z,
-            width: annotation.width,
-            height: annotation.height,
-            depth: annotation.depth,
-            color: 0,
-            rotationX: 0,
-            rotationY: 0,
-            rotationZ: 0,
-        }));
+        `http://127.0.0.1:8080/annotations/projects/${projectId}/episodes/${episode}/annotations/${file_name}`,
+        {
+          headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+          },
+      }
+    );
+    const got_annotations =  res.data
+    const annotations :Annotation[] =got_annotations.map(annotation => ({
+      id: annotation.id,
+      type: annotation.geometry,  
+      label: [annotation.label] ,
+      points: [],
+      x: annotation.position.x ,
+      y: annotation.position.y ,
+      z: annotation.position.z ,
+      width: annotation.size.width ,
+      height: annotation.size.height ,
+      depth: annotation.size.depth ,
+      color: 0 ,
+  }));
 
-
-        //  console.log ('get annotation!!!',item)
-        //  const annotation: Annotation[] = [{
-        //     id: item.id,
-        //     type: item.geometry,
-        //     label: item.label ,
-        //     points: [],
-        //     x: item.position.x ,
-        //     y: item.position.y ,
-        //     z: item.position.z ,
-        //     width: item.size.width ,
-        //     height: item.size.height ,
-        //     depth: item.size.depth ,
-        //     color: 0 ,
-        //   }];
-        return annotations
+     
+    //  console.log ('get annotation!!!',item)
+    //  const annotation: Annotation[] = [{
+    //     id: item.id,
+    //     type: item.geometry,  
+    //     label: item.label ,
+    //     points: [],
+    //     x: item.position.x ,
+    //     y: item.position.y ,
+    //     z: item.position.z ,
+    //     width: item.size.width ,
+    //     height: item.size.height ,
+    //     depth: item.size.depth ,
+    //     color: 0 ,
+    //   }];
+      return annotations
     } catch (error) {
-        console.error('Failed to fetch annotations:', error);
-        return []
-        // You can handle errors or show a message to the user here
+      console.error('Failed to fetch annotations:', error);
+      return []
+      // You can handle errors or show a message to the user here
     }
-}
+  }

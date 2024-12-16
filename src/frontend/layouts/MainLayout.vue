@@ -4,11 +4,13 @@
       <div class="layout-grid">
         <!-- Toolbar -->
         <tool-bar/>
-      </div>
 
         <!-- Main View -->
         <div class="main-section">
           <main-viewer/>
+          <div class="label-controller">
+          <label-controller/>
+        </div>
         </div>
 
         <!-- Side Views and Label Editor Container -->
@@ -36,9 +38,8 @@
           </div>
         </div>
         <!-- Label Editor -->
-        <div class="label-editor">
-          <label-editor/>
-        </div>
+        
+      </div>
     </v-main>
   </v-app>
 </template>
@@ -49,6 +50,7 @@ import ToolBar from '@/components/toolbar/ToolBar.vue'
 import MainViewer from '@/components/viewer/MainViewer.vue'
 import AuxiliaryViewer from '@/components/viewer/AuxiliaryViewer.vue'
 import LabelEditor from '@/components/label/LabelEditor.vue'
+import LabelController from '@/components/label/LabelController.vue'
 import {useViewportStore} from '@/stores'
 import {useSceneCamera} from '@/stores/scene_camera_control'
 import {UI_COLORS} from "@/constants" // Used in <style> v-bind
@@ -61,8 +63,8 @@ const {lgAndUp, mdAndDown} = useDisplay()
 <style scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: calc(100% - var(--side-view-width) - var(--label-editor-width)) var(--side-view-width) var(--label-editor-width);
-  grid-template-areas: "main side label-edit";
+  grid-template-columns: calc(100% - var(--side-view-width) ) var(--side-view-width) ;
+  grid-template-areas: "main side";
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -104,6 +106,21 @@ const {lgAndUp, mdAndDown} = useDisplay()
 
 .auxiliary-view-container:last-child {
   border-bottom: none;
+}
+
+.label-controller {
+  position: absolute; /* Place it relative to .main-section */
+  top: 10px; /* Adjust as needed for spacing from the top */
+  left: 10px; /* Adjust as needed for spacing from the left */
+  width: 400px; /* Set a fixed width for the label editor */
+  height: auto; /* Adjust height as needed */
+  /* background-color: rgb(0, 0, 0); Add a background to distinguish it */
+  background: none; /* Remove the background */
+  border: 1px solid var(--border-color); /* Optional: Add a border */
+  z-index: 10; /* Ensure it is on top of other elements */
+  padding: 16px; /* Optional: Add some internal padding */
+  border-radius: 8px; /* Optional: Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
 }
 
 .label-editor {

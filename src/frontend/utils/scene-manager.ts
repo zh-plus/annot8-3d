@@ -33,7 +33,7 @@ export function setupScene(viewerContext: ViewerContext,path:string) {
         const AnnotationStore = useAnnotationStore()
         const { annotations } = storeToRefs(AnnotationStore); 
         annotations.value.forEach((annotation) => {
-          
+          console.log(annotation)
           const BBox = AnnotationStore.CreatBBox_byPositoin(annotation.x, annotation.y, annotation.z,annotation.label[0],annotation.width, annotation.height,annotation.depth)
           viewerContext.scene.add(BBox)
         });

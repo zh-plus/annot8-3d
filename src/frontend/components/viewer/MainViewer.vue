@@ -17,14 +17,15 @@
 import {ref, watch, watchEffect} from 'vue'
 import * as THREE from 'three'
 import {useAnnotationStore, useToolStore, useViewportStore,useLabelStore} from '@/stores'
-import { useFileStore } from '@/stores/file'
 import {storeToRefs} from 'pinia'
 import {useViewer} from '@/composables/useViewer'
 import {CAMERA_POSITIONS} from '@/constants'
-import {setupScene,clearScene} from '@/utils/scene-manager'
+import {setupScene} from '@/utils/scene-manager'
 import ControlAnnotations from "@/components/bounding_box/ControlAnnotations.vue";
 import {ViewerContext} from "@/types";
 import FileChoose from "@/components/toolbar/FileChoose.vue";
+import {useFileStore} from '@/stores/file.ts'
+import {clearScene} from '@/utils/scene-manager'
 import {useSceneCamera} from "@/stores/scene_camera_control.ts";
 
 
