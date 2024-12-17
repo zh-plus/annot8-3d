@@ -70,8 +70,3 @@ Alternatively, use **tools like Postman**, **Thunder Client** (VS Code extension
 
 - **Missing Dependencies**: If you encounter errors about missing libraries, check `requirements.txt` to ensure everything is installed.
 - **Port Already in Use**: If port **8080** is occupied, change to an available port using the `--port` option.
-
-
-
-
-
