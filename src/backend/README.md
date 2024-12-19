@@ -23,10 +23,10 @@ This guide will help you set up the backend server for the project. Please follo
 
 ## Step 2: Install Dependencies
 
-Navigate to the `src/backend/server` folder where the backend source code is located:
+Navigate to the `src/backend/service` folder where the backend source code is located:
 
 ```sh
-cd src/backend/server
+cd src/backend/service
 ```
 
 Use **pip** to install the required dependencies from `requirements.txt`:
