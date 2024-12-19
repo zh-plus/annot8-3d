@@ -1,142 +1,147 @@
 <template>
-  <v-card class="label-editor-card rounded-0">
-    <!-- 1. 标题区域 -->
-    <v-card-title class="text-subtitle-1 d-flex align-center justify-space-between">
-      Label Editor
-      <v-btn
-          icon="mdi-plus"
-          size="small"
-          variant="text"
-          @click="showAddDialog = true" /> <!--点击按钮后，弹出一个添加项的对话框 -->
-      />
-    </v-card-title>
-    <!-- 2. 标签列表内容区域 -->
-    <v-card-text class="label-editor-content">
-      <v-list density="compact">
-        <v-list-item
-            v-for="label in labels"
-            :key="label.id"
-            :value="label.id"
-            class="px-2"
-        > <!-- 选择框 -->
-          <template v-slot:prepend>  <!-- isSelected检查标签是否已被选中。toggleLabel切换标签的选择状态。-->
-            <v-checkbox-btn
-                :model-value="isSelected(label.id)"
-                color="primary"
-                density="compact"
-                @update:model-value="() => toggleLabel(label.id)"
-            />
-          </template>
-          <!-- 标签名称 -->
-          <v-list-item-title>{{ label.name }}</v-list-item-title>
-          <!-- 删除按钮 -->
-          <template v-slot:append>
-            <v-btn
-                class="delete-btn"
-                icon="mdi-delete"
-                size="small"
-                variant="text"
-                @click="removeLabel(label.id)"
-            />
-          </template>
-        </v-list-item>
-      </v-list>
-    </v-card-text>
+  <v-container fluid>
+ <!-- <v-container fluid v-if="FileListEnabled">
+   <file-manager/> -->
+   <v-row no-gutters> 
+     <!-- 文件列表 -->
+     <v-col cols="12" class="file-list">
+       <v-list nav>
+         <!-- 遍历文件夹数组 -->
+         <v-list-group
+           v-for="label in labels"
+           :key="label.id"
+           :value="label.id"
+         >
+           <!-- 一级目录（文件夹） -->
+           <template v-slot:activator="{ props }">
+             <v-list-item 
+               v-bind="props"
+               :title="label.name"
+               @mouseenter="label.BBox.map((bbox) => {highlightBBox(bbox.bbox)});"
+               @mouseleave="label.BBox.map((bbox) => {resetBBoxColor(bbox.bbox)});"
+             ></v-list-item>
+           </template>
+           
+           <!-- 二级目录（文件） -->
+           <v-list-item 
+             v-for="bbox in label.BBox"
+             :key="bbox.id"
+             :title="bbox.id"
+             :value="bbox.id"
+             @mouseenter="highlightBBox(bbox.bbox)"
+             @mouseleave="resetBBoxColor(bbox.bbox)"
+             
+           ></v-list-item>
+         </v-list-group>
+       </v-list>
+     </v-col>
+   </v-row>
+ </v-container>
+ 
+ </template>
+ 
+ 
+ <script setup lang="ts">
+ import { ref, watch} from 'vue';
+ import { storeToRefs } from 'pinia';
+ import { useFileStore } from '@/stores/file.ts'; 
+ import { File_Anno } from '@/types';
+ import { useAnnotationStore } from '@/stores';
+//  import FileManager from '../toolbar/FileManager.vue';
+ import { useLabelStore } from '@/stores';
+ import * as THREE from 'three';
+ 
+ const fileStore = useFileStore();//实例化
+ const { allFolder,selectedFile,FileListEnabled} = storeToRefs(fileStore); //解构
+ const annotationStore = useAnnotationStore();
 
-    <!-- 3. 新建标签对话框 -->
-    <v-dialog v-model="showAddDialog" max-width="300px">
-      <v-card>
-        <v-card-title>Add New Label</v-card-title>
-        <v-card-text>
-          <v-text-field
-              v-model="newLabelName"
-              label="Label Name"
-              @keyup.enter="handleAddLabel"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer/>
-          <v-btn
-              :disabled="!newLabelName.trim()"
-              color="primary"
-              variant="text"
-              @click="handleAddLabel"
-          >
-            Add
-          </v-btn>
-          <v-btn
-              color="grey"
-              variant="text"
-              @click="closeDialog"
-          >
-            Cancel
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-card>
-</template>
+ const labelStore = useLabelStore();
+ const { labels} = storeToRefs(labelStore); //解构
 
-<script lang="ts" setup>
-import {ref} from 'vue'
-import {useLabelStore , useAnnotationStore} from '@/stores'
-import {storeToRefs} from 'pinia'
+ 
+ // 选择文件
+ const selectFile = (file: File_Anno) => {
+   fileStore.setSelectedFile(file)
+ };
+ 
+ // 查看标注
+ const viewAnnotation = (annotation: any) => {
+   alert(`查看标注: ${annotation.label}`);
+ };
+ 
+ // 删除标注
+ const deleteAnnotation = (annotation: any) => {
+    annotationStore.removeAnnotation(annotation.id); // 删除该标注
+ };
 
-const labelStore = useLabelStore()
-const {labels, selectedLabels} = storeToRefs(labelStore)
-const annotationStore = useAnnotationStore()
 
-const showAddDialog = ref(false)
-const newLabelName = ref('')
-
-const isSelected = (labelId: string) => {
-  return selectedLabels.value.some(label => label.id === labelId)
-}
-
-const handleAddLabel = () => {
-  if (newLabelName.value.trim()) {
-    labelStore.addLabel(newLabelName.value)
-    closeDialog()
+ // 鼠标悬停时高亮
+const highlightBBox = (bbox: THREE.LineSegments) => {
+  if (bbox.material) {
+    const material = bbox.material as THREE.Material; // 假设材质是可以转换的
+    if ('color' in material) {
+      const originalColor =  (material as THREE.LineBasicMaterial).color.clone(); // 保存原始颜色
+      (bbox.userData as any).originalColor = originalColor; // 存储到 userData 中
+      (material as THREE.LineBasicMaterial).color.set(0xffff00); // 设置高亮颜色（亮黄色）
+    }
   }
+};
+
+// 鼠标移开时重置颜色
+const resetBBoxColor = (bbox: THREE.LineSegments) => {
+  if (bbox.material) {
+    const material = bbox.material as THREE.Material;
+    if ('color' in material) {
+      const originalColor = (bbox.userData as any).originalColor;
+      if (originalColor) {
+        (material as THREE.LineBasicMaterial).color.copy(originalColor); // 恢复原始颜色
+      }
+    }
+  }
+};
+
+ </script>
+ 
+ <style scoped>
+ .v-container {
+   width: 10000vh; /* 确保行占满父容器 */
+   height: 100vh; /* 确保行占满父容器 */
+   padding: 0;
+   background-color: white;
+   border-radius: 2px;
+ }
+
+ .v-row {
+  width: 100%;
+  height: 100%; /* 确保行占满父容器 */
+  margin: 0;
 }
 
-const closeDialog = () => {
-  showAddDialog.value = false
-  newLabelName.value = ''
+.v-col {
+  width:100%;
+  height: 100%; /* 列也占满父容器 */
+  overflow: auto; /* 内容超出时滚动 */
 }
 
-const {toggleLabel, removeLabel} = labelStore
-</script>
-
-<style scoped>
-.label-editor-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  border-radius: 0;
+ 
+.file-list {
+  overflow-y: auto; /* 保留滚动条 */
+  max-height: calc(100vh ); /* 适配视口高度 */
+  max-width: calc(100vh); /* 适配视口高度 */
+  background-color: #f5f5f5; /* 背景颜色 */
+  border-right: none; /* 移除分隔线 */
 }
-
-.label-editor-content {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.delete-btn {
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.v-list-item:hover .delete-btn {
-  opacity: 1;
-}
-
-:deep(.v-list-item__content) {
-  overflow: hidden;
-}
-
-:deep(.v-list-item__title) {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>
+ 
+ .annotation-results {
+   overflow-y: auto; /* 启用垂直滚动条 */
+   max-height: calc(100vh - 64px); /* 根据需要调整最大高度 */
+ }
+ .file-list {
+   background-color: #f5f5f5; /* 默认背景颜色 */
+ }
+ 
+ .file-list.selected {
+   background-color: #d0eaff; /* 选中时的背景颜色 */
+   color: #003366; /* 可选：选中状态的文字颜色 */
+ }
+ </style>
