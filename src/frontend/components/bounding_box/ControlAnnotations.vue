@@ -3,13 +3,12 @@ import * as THREE from "three";
 import {useRaycaster} from "@/composables/useViewerContext.ts";
 import {computed, nextTick, PropType, reactive, ref, watch, watchEffect} from "vue";
 import type {ViewerContext} from "@/types";
-import type {BoxPosition, BoxDimensions, BoxRotation} from "@/stores/types"
-import {useAnnotationStore, useToolStore, useViewportStore} from "@/stores";
-import {useSceneCamera} from "@/stores/scene_camera_control"
+import {useAnnotationStore, useToolStore} from "@/stores";
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
 import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
 import {useFileStore} from '@/stores/file'
+import { useLabelStore } from "@/stores";
 
 const props = defineProps({
   viewerContext: {
@@ -30,12 +29,10 @@ const toolStore = useToolStore(); // 获取 store 实例
 const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
 const fileStore = useFileStore();
 const {selectedFile} = storeToRefs(fileStore);
+const LabelStore = useLabelStore()
 
 const annotationStore = useAnnotationStore()
-const sceneCamera = useSceneCamera()
-const viewportStore = useViewportStore()
 let currentlySelectedBox: THREE.LineSegments | null = null;
-let seal_sphere: THREE.Mesh | null | undefined = null;
 const currentBox = computed(() => annotationStore.currentBox);
 const scene = props.viewerContext.scene
 
@@ -43,29 +40,33 @@ const isKeyAPressed_a = ref(false)
 const isKeyAPressed_d = ref(false)
 const showControlPanel = ref(false)
 
-const boxDimensions = reactive<BoxDimensions>({
+const labelStore = useLabelStore()
+
+
+const boxDimensions = reactive({
   width: currentBox.value?.width || 1,
   height: currentBox.value?.height || 1,
   depth: currentBox.value?.depth || 1
 });
-const boxPosition = reactive<BoxPosition>({
+const boxPosition = reactive({
   x: currentBox.value?.x || 0,
   y: currentBox.value?.y || 0,
   z: currentBox.value?.z || 0
 });
-const boxRotation = reactive<BoxRotation>({
-  rotationX: currentBox.value?.rotationX || 0,
-  rotationY: currentBox.value?.rotationY || 0,
-  rotationZ: currentBox.value?.rotationZ || 0
+const boxcolor = reactive({
+  color: currentBox.value?.color || 0x000000,
 });
+const boxLabel = ref({
+  label: currentBox.value?.label[0] || "car",
+});
+let lastLabel = boxLabel.value.label; // 初始化旧值
 
 const updateBoxProperties = () => {
   if (currentlySelectedBox instanceof THREE.LineSegments) {
     // 检查是否需要更新
     annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
         boxPosition.x, boxPosition.y, boxPosition.z,
-        boxDimensions.width, boxDimensions.height, boxDimensions.depth,
-        boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
+        boxDimensions.width, boxDimensions.height, boxDimensions.depth,0,0,0);
 
     const newGeometry = new THREE.BoxGeometry(
         boxDimensions.width,
@@ -74,12 +75,15 @@ const updateBoxProperties = () => {
     );
     const newEdges = new THREE.EdgesGeometry(newGeometry);
     const newBox = new THREE.LineSegments(newEdges, currentlySelectedBox.material);
+     
     newBox.position.set(
         boxPosition.x,
         boxPosition.y,
         boxPosition.z
     );
     // 替换旧对象
+    console.log('initial delete',currentlySelectedBox)
+    labelStore.deleteBBox(currentBox.value?.label[0],currentlySelectedBox)
     scene.remove(currentlySelectedBox);
     currentlySelectedBox.geometry.dispose(); // 释放旧几何体资源
     currentlySelectedBox = newBox; // 更新为新创建的 LineSegments
@@ -92,15 +96,32 @@ watch([boxDimensions, boxPosition], async () => {
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
-    if(sceneCamera.type == 1){
-      sceneCamera.set_observe_camera({x: boxPosition.x, y: boxPosition.y, z: boxPosition.z}, boxRotation)
-    }
-    viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
   }
 }, {deep: true});
+
+//当标签改变的时候同步在右侧信息栏里
+watch(boxLabel, (newLabel, oldLabel) => {
+    console.log('Box label changed:',lastLabel);
+    if (currentlySelectedBox instanceof THREE.LineSegments) {
+      console.log('currentselectedbbox',currentlySelectedBox);
+      labelStore.deleteBBox(lastLabel,currentlySelectedBox)
+      labelStore.addBBox(newLabel.label,currentlySelectedBox)
+      lastLabel = newLabel.label
+    }
+    console.log('Box color changed:');
+  if (currentlySelectedBox instanceof THREE.LineSegments) {
+    if (Array.isArray(currentlySelectedBox.material)) {
+        (currentlySelectedBox.material[0] as THREE.LineBasicMaterial).color.set(boxcolor.color); // 如果材质是数组
+      } else {
+        (currentlySelectedBox.material as THREE.LineBasicMaterial).color.set(boxcolor.color); // 如果材质不是数组
+      }
+  }
+}, {deep: true,immediate: true});//监听对象内部属性或数组元素的变化
+
+
 watch(
     () => annotationStore.currentBox,
-    (newBox) => {
+    (newBox, oldBox) => {
       if (newBox) {
         boxDimensions.width = newBox.width;
         boxDimensions.height = newBox.height;
@@ -108,10 +129,18 @@ watch(
         boxPosition.x = newBox.x;
         boxPosition.y = newBox.y;
         boxPosition.z = newBox.z;
+        let color=labelStore.findColor(newBox.label[0])
+        if (color == undefined){
+                color = "#FFFFFF"; // default color is white
+            }
+        console.log('aaaaaa',color);
+        boxcolor.color = parseInt(color.replace("#", ""), 16)
+        boxLabel.value.label = newBox.label[0];
       }
     },
     {deep: true}
 );
+
 
 const ClickBBox = (event: MouseEvent): void => {
   // 计算位置
@@ -139,13 +168,13 @@ const ClickBBox = (event: MouseEvent): void => {
     if (currentlySelectedBox instanceof THREE.LineSegments) {
       const material_last = currentlySelectedBox.material;
       if (Array.isArray(material_last)) {
-        (material_last[0] as THREE.LineBasicMaterial).color.set(0x00ff00); // 如果材质是数组
+        (material_last[0] as THREE.LineBasicMaterial).color.set(boxcolor.color); // 如果材质是数组
       } else {
-        (material_last as THREE.LineBasicMaterial).color.set(0x00ff00); // 如果材质不是数组
+        (material_last as THREE.LineBasicMaterial).color.set(boxcolor.color); // 如果材质不是数组
       }
     }
     // 当前选择
-    if (annotation && sceneCamera.type == 0) {
+    if (annotation) {
       console.log("selected annotation: ", annotation)
       annotationStore.selectAnnotation(annotation.id);
       annotationStore.currentBox = annotation;
@@ -158,11 +187,7 @@ const ClickBBox = (event: MouseEvent): void => {
         }
       }
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
-      //切换正交相机
-      sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
-      setTimeout(() => {
-        seal_sphere = sceneCamera.createAdjustableCube()
-      },50);
+      console.log("selected: ", currentlySelectedBox)
       // 打开面板
       showControlPanel.value = true;
       console.log("showControlPanel:", showControlPanel.value, "annotationStore.currentBox", annotationStore.currentBox)
@@ -170,17 +195,7 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = null
       showControlPanel.value = false;
       annotationStore.selectedAnnotation = null;
-      sceneCamera.reset_observe_camera()
-      if (seal_sphere && sceneCamera.scene) {
-        console.log("should delete sphere")
-        sceneCamera.scene.traverse((object) => {
-          if (object instanceof THREE.Mesh && !(object.geometry instanceof THREE.BoxGeometry)) {
-            sceneCamera.scene?.remove(object);
-          }
-        });
-        seal_sphere = null
-        sceneCamera.boxPosition = {x: 0, y: 0, z: 0}
-      }
+      annotationStore.currentBox = null
     }
   }
 }
@@ -196,7 +211,8 @@ const build_BBox = (event: MouseEvent): void => {
     }
     console.log("onMouseClick is running")
     // 创建方块
-    const BBox = annotationStore.CreatBBox(intersects, "Car", 2, 1, 2)
+    const BBox = annotationStore.CreatBBox(intersects, 'Car', 2, 1, 2)
+    LabelStore.addBBox('Car',BBox)
     // 将边界框添加到场景中
     if (BBox != null) {
       scene.add(BBox)
@@ -244,21 +260,6 @@ const onMouseUp = (): void => {
   annotationStore.isDrawing = false;
 };
 
-// 鼠标滑轮事件的处理函数
-const onWheel = (event: WheelEvent): void => {
-    if (event.deltaY < 0 && seal_sphere) {
-      // 向上滚动，缩小
-      seal_sphere.scale.set(seal_sphere.scale.x * 0.9091, seal_sphere.scale.y * 0.9091, seal_sphere.scale.z * 0.9091);
-      console.log("Shrinking: ", seal_sphere.scale);
-    } else if (event.deltaY > 0 && seal_sphere) {
-      // 向下滚动，放大
-      seal_sphere.scale.set(seal_sphere.scale.x * 1.1, seal_sphere.scale.y * 1.1, seal_sphere.scale.z * 1.1);
-      console.log("Enlarging: ", seal_sphere.scale);
-    }
-  // 阻止默认行为，避免页面滚动
-  event.preventDefault();
-}
-
 const onKeyDown_a = (event: KeyboardEvent) => {
   if (event.key === 'a') {
     isKeyAPressed_a.value = true
@@ -281,7 +282,9 @@ const onKeyDown_d = (event: KeyboardEvent) => {
     if (isDelete() && isKeyAPressed_d) {
       console.log("isDelete")
       currentlySelectedBox.clear()
-      props.viewerContext.scene.remove(currentlySelectedBox)  // 从场景中删除选中的边界框
+      // 从场景中删除选中的边界框
+      labelStore.deleteBBox(boxLabel.value.label,currentlySelectedBox)
+      props.viewerContext.scene.remove(currentlySelectedBox)  
       if (annotationStore.selectedAnnotation!=null) {
       annotationStore.removeAnnotation(annotationStore.selectedAnnotation)
       }
@@ -326,7 +329,6 @@ onMounted(() => {
     canvas.addEventListener('mousedown', onMouseDown);
     canvas.addEventListener('mousemove', onMouseMove);
     canvas.addEventListener('mouseup', onMouseUp);
-    canvas.addEventListener('wheel', onWheel)
   }
 })
 
@@ -341,7 +343,6 @@ onBeforeUnmount(() => {
     canvas.removeEventListener('mousedown', onMouseDown);
     canvas.removeEventListener('mousemove', onMouseMove);
     canvas.removeEventListener('mouseup', onMouseUp);
-    canvas.removeEventListener('wheel', onWheel)
   }
 })
 
@@ -353,98 +354,77 @@ onBeforeUnmount(() => {
       class="control-panel"
       style="position: absolute; top: 10px; left: 10px; z-index: 10;"
   >
-    <v-card class="pa-3" elevation="5" style="width: 300px; margin-bottom: 10px;">
+    <v-card class="pa-3" elevation="5" style="width: 300px; height: 350px; overflow-y: auto; margin-bottom: 10px;">
       <v-card-title>Adjust Size</v-card-title>
       <v-card-text>
         <!-- 尺寸调整 -->
-        <v-slider
-            v-model="annotationStore.currentBox.width"
-            label="Width"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.height"
-            label="Height"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.depth"
-            label="Depth"
-            min="0.1"
-            max="10"
-            step="0.1"
-        />
         <v-text-field
             v-model="annotationStore.currentBox.width"
             label="Width"
             step="0.1"
             type="number"
+            dense
+            style="font-size: 12px;"
         />
         <v-text-field
             v-model="annotationStore.currentBox.height"
             label="Height"
             step="0.1"
             type="number"
+            dense
+            style="font-size: 12px;"
         />
         <v-text-field
             v-model="annotationStore.currentBox.depth"
             label="Depth"
             step="0.1"
             type="number"
+            dense
+            style="font-size: 12px;"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.x"
+            label="X Position"
+            step="0.1"
+            type="number"
+            dense
+            style="font-size: 12px;"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.y"
+            label="Y Position"
+            step="0.1"
+            type="number"
+            dense
+            style="font-size: 12px;"
+        />
+        <v-text-field
+            v-model="annotationStore.currentBox.z"
+            label="Z Position"
+            step="0.1"
+            type="number"
+            dense
+            style="font-size: 12px;"
         />
       </v-card-text>
     </v-card>
-    <v-card class="pa-3" elevation="5" style="width: 300px;">
-      <v-card-title>Adjust Position</v-card-title>
+    <v-card class="pa-3" elevation="5" style="width: 300px; height: 150px; overflow-y: auto; margin-bottom: 10px;">
+      <v-card-title>Label</v-card-title>
       <v-card-text>
-        <!-- 位置调整 -->
-        <v-slider
-            v-model="annotationStore.currentBox.x"
-            label="X Position"
-            min="-10"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.y"
-            label="Y Position"
-            min="-10"
-            max="10"
-            step="0.1"
-        />
-        <v-slider
-            v-model="annotationStore.currentBox.z"
-            label="Z Position"
-            min="-10"
-            max="10"
-            step="0.1"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.x"
-            label="X Position"
-            step="0.1"
-            type="number"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.y"
-            label="Y Position"
-            step="0.1"
-            type="number"
-        />
-        <v-text-field
-            v-model="annotationStore.currentBox.z"
-            label="Z Position"
-            step="0.1"
-            type="number"
+        <!-- 标签选择 -->
+        <v-select
+            v-model="annotationStore.currentBox.label[0]"
+            :items="labelStore.labels.map(label => label.name)"
+            label="Label"
+            dense
+            style="font-size: 12px;"
         />
       </v-card-text>
     </v-card>
+   
   </div>
 </template>
+
 
 <style scoped>
 .control-panel {

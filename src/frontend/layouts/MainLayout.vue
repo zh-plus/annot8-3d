@@ -4,32 +4,30 @@
       <div class="layout-grid">
         <!-- Toolbar -->
         <tool-bar/>
-
-        <!-- Main View -->
-        <div class="main-section">
-          <main-viewer/>
-          <div class="label-controller">
+        <div class="total-section">
+          <!-- Main View -->
+          <div class="main-section">
+            <main-viewer/>
+            <div class="label-controller">
           <label-controller/>
         </div>
-        </div>
-
-        <!-- Side Views and Label Editor Container -->
-        <div class="side-section" v-if="sceneCamera.scene">
+          </div>
+          <!-- Side Views and Label Editor Container -->
           <!-- Side Views -->
-          <div class="side-views">
-            <div class="auxiliary-view-container">
+          <div class="side-views" v-if="sceneCamera.scene">
+            <div class="auxiliary-view-container-over">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.overhead"
                   label="Overhead View"
               />
             </div>
-            <div class="auxiliary-view-container">
+            <div class="auxiliary-view-container-side">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.side"
                   label="Side View"
               />
             </div>
-            <div class="auxiliary-view-container">
+            <div class="auxiliary-view-container-front">
               <auxiliary-viewer
                   :camera-position="viewportStore.cameraPositions.front"
                   label="Front View"
@@ -37,8 +35,10 @@
             </div>
           </div>
         </div>
-        <!-- Label Editor -->
-        
+<!--         Label Editor -->
+        <div class="label-editor">
+          <label-editor/>
+        </div>
       </div>
     </v-main>
   </v-app>
@@ -63,13 +63,35 @@ const {lgAndUp, mdAndDown} = useDisplay()
 <style scoped>
 .layout-grid {
   display: grid;
-  grid-template-columns: calc(100% - var(--side-view-width) ) var(--side-view-width) ;
-  grid-template-areas: "main side";
+  grid-template-columns:0.8fr 0.2fr;
+  grid-template-areas:
+    "total_view label-edit";
   height: 100vh;
-  width: 100vw;
+  width: calc(100vw - var(--toolbar-width));
   overflow: hidden;
   position: relative;
   margin-left: var(--toolbar-width);
+}
+
+.label-editor {
+  grid-area: label-edit;
+  flex: 1;
+  border-left: 1px solid var(--border-color);
+  height: 100%;
+  overflow: hidden;
+}
+
+.total-section {
+  grid-area: total_view;
+  display: grid;
+  grid-template-rows: 2fr 1fr;
+  grid-template-areas:
+  "main"
+  "side-sel";
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .main-section {
@@ -80,33 +102,61 @@ const {lgAndUp, mdAndDown} = useDisplay()
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  object-fit: contain;   /* 保持等比例变化*/
   /* Remove margin */
 }
 
 .side-section {
-  grid-area: side;
+  grid-area: side-sel;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   height: 100%;
   border-left: 1px solid var(--border-color);
   background-color: v-bind('UI_COLORS.surface');
 }
 
 .side-views {
-  flex: 2;
-  display: flex;
-  flex-direction: column;
+  grid-area: side-sel;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-areas:
+  "overhead side front";
+  display: grid;
+  flex-direction: row;
 }
 
-.auxiliary-view-container {
+.auxiliary-view-container-over {
+  grid-area: overhead;
   flex: 1;
   border-bottom: 1px solid v-bind('UI_COLORS.border');
-  aspect-ratio: var(--aspect-ratio);
+  aspect-ratio: var(calc(4 / 3));
 }
 
-.auxiliary-view-container:last-child {
+.auxiliary-view-container-over:last-child {
   border-bottom: none;
 }
+
+.auxiliary-view-container-side {
+  grid-area: side;
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-side:last-child {
+  border-bottom: none;
+}
+
+.auxiliary-view-container-front {
+  grid-area: front;
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-over:last-child {
+  border-bottom: none;
+}
+
 
 .label-controller {
   position: absolute; /* Place it relative to .main-section */
@@ -122,13 +172,6 @@ const {lgAndUp, mdAndDown} = useDisplay()
   border-radius: 8px; /* Optional: Rounded corners */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow */
 }
-
-.label-editor {
-  grid-area: label-edit;
-  flex: 1;
-  border-left: 1px solid var(--border-color);
-}
-
 /* Responsive layouts */
 @media (max-width: 1280px) {
   .layout-grid {

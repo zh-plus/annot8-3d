@@ -81,6 +81,28 @@ export function createPointCloudMaterial(pointSize: number = 1): THREE.PointsMat
         opacity: 0.8
     });
 }
+function customParsePCD(data:any) {
+    const lines = data.split('\n');
+    const points = [];
+    const colors = [];
+    let isDataSection = false;
+
+    for (const line of lines) {
+        if (line.startsWith('DATA')) {
+            isDataSection = true;
+            continue;
+        }
+
+        if (isDataSection && line.trim() !== '') {
+            const [x, y, z, r, g, b] = line.split(' ').map(Number);
+            points.push(x, y, z);
+            colors.push(r / 255, g / 255, b / 255);
+        }
+    }
+    console.log(colors)
+
+    return { points, colors };
+}
 
 export function loadPointCloudFromPCD(filePath: string,scene: any) {
     const loader = new PCDLoader();
@@ -100,27 +122,43 @@ export function loadPointCloudFromPCD(filePath: string,scene: any) {
     
     const final_path = match ? match[0] : filePath;
 
-    loader.load(final_path, function (points) {
-        
-        // 将点云几何居中并绕X轴旋转180度
-        // points.geometry.center();
-        // 旋转
-         points.geometry.rotateX(-Math.PI/2);
-        // 创建点云材质
-        const material = new THREE.PointsMaterial({ size: 0.08, vertexColors: true });
-        
-        //改变颜色
-        const colors = [];
-        const numPoints = points.geometry.attributes.position.count;
-        for (let i = 0; i < numPoints; i++) {
-            // Generate a random color or a specific color pattern
-            const color = new THREE.Color(Math.random(), Math.random(), Math.random());
-            colors.push(color.r, color.g, color.b); // Add color values to the array
-        }
-        points.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-        // 创建点云对象
-        const pointCloud = new THREE.Points(points.geometry, material);
-        scene.add(pointCloud);
+    fetch(final_path)
+        .then(response => response.text())
+        .then(data => {
+            const { points, colors } = customParsePCD(data);
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.rotateX(-Math.PI/2);
+            const material = new THREE.PointsMaterial({
+                size: 0.08,
+                vertexColors: true, // 顶点颜色
+            });
+
+            const pointCloud = new THREE.Points(geometry, material);
+            scene.add(pointCloud);
+
+    // loader.load(final_path, function (points) {
+    //     // 将点云几何居中并绕X轴旋转180度
+    //     // points.geometry.center();
+    //     // 旋转
+    //     points.geometry.rotateX(-Math.PI/2);
+    //     // 创建点云材质
+    //     const material = new THREE.PointsMaterial({ size: 0.08, vertexColors: true });
+
+    //     //改变颜色
+    //     const colors = [];
+    //     const numPoints = points.geometry.attributes.position.count;
+    //     for (let i = 0; i < numPoints; i++) {
+    //         // Generate a random color or a specific color pattern
+    //         const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+    //         colors.push(color.r, color.g, color.b); // Add color values to the array
+    //     }
+    //     points.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    //     // 创建点云对象
+    //     const pointCloud = new THREE.Points(points.geometry, material);
+    //     scene.add(pointCloud);
     })
 }
 

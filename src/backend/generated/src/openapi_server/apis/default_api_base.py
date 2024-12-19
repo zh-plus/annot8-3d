@@ -17,6 +17,7 @@ from openapi_server.models.pcd_file import PCDFile
 from openapi_server.models.project import Project
 from openapi_server.models.project_request import ProjectRequest
 from openapi_server.models.register_request import RegisterRequest
+from openapi_server.models.label import Label
 from openapi_server.security_api import get_token_BearerAuth
 
 class BaseDefaultApi:
@@ -135,7 +136,7 @@ class BaseDefaultApi:
     async def get_labels(
             self,
             project_id: StrictInt,
-        ) -> List[str]:
+        ) -> List[Label]:
             raise NotImplementedError("get_labels() is not implemented")
     
     async def save_annotations(

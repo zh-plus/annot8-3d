@@ -1,4 +1,6 @@
 import type {Vector3} from 'three'
+import * as THREE from 'three';
+
 
 export interface Tool {
     id: string
@@ -36,3 +38,8 @@ export interface File{
     name:string
     file_path:string
 }
+
+export interface BBoxItem {
+    id: string;
+    bbox: THREE.LineSegments;
+  }

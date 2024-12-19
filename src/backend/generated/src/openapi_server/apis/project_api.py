@@ -30,6 +30,7 @@ from openapi_server.models.list_pcd_files_request import ListPcdFilesRequest
 from openapi_server.models.pcd_file import PCDFile
 from openapi_server.models.project import Project
 from openapi_server.models.project_request import ProjectRequest
+from openapi_server.models.label import Label
 from openapi_server.security_api import get_token_BearerAuth
 
 router = APIRouter()
@@ -253,7 +254,7 @@ async def get_labels(
     token_BearerAuth: TokenModel = Security(
         get_token_BearerAuth
     ),
-) -> List[str]:
+) -> List[Label]:
     if not BaseDefaultApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
     return await BaseDefaultApi.subclasses[1]().get_labels(project_id)

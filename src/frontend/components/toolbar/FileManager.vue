@@ -234,6 +234,8 @@ import { storeToRefs } from 'pinia';
   }
 
   .directory-list {
+    max-height: 500px; /* 设置容器的最大高度 */
+    overflow-y: auto; /* 超出高度后出现滚动条 */
     list-style-type: none;
     padding: 0;
   }

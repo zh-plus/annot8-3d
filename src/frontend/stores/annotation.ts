@@ -6,13 +6,14 @@ import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
 import axios from 'axios';
 import {useFileStore} from '@/stores/file';
+import { useLabelStore } from './labels'
 import * as THREE from "three";
 
 export const useAnnotationStore = defineStore('annotation', {
     state: () => ({
         selectedAnnotation: null as string | null,
         isDrawing: false,
-        currentBox: null as Box | null,
+        currentBox: null as Annotation | null,
     }),
     getters: {
         // 动态获取当前文件的注解
@@ -59,21 +60,26 @@ export const useAnnotationStore = defineStore('annotation', {
             // 创建边界框
             const geometry = new THREE.BoxGeometry(width, height, depth)
             const edges = new THREE.EdgesGeometry(geometry)
-            let color = 0xffffff
+            // let color = 0xffffff
             // 与label tool关联后需要修改
-            switch (label) {
-                case 'Car':
-                    color = 0x00ff00;
-                    break;
-                case 'Pedestrian':
-                    color = 0xff0000;
-                    break;
-                case 'Cyclist':
-                    color = 0x0000ff;
-                    break;
-                case 'Traffic Sign':
-                    color = 0xffff00;
-                    break;
+            // switch (label) {
+            //     case 'Car':
+            //         color = 0x00ff00;
+            //         break;
+            //     case 'Pedestrian':
+            //         color = 0xff0000;
+            //         break;
+            //     case 'Cyclist':
+            //         color = 0x0000ff;
+            //         break;
+            //     case 'Traffic Sign':
+            //         color = 0xffff00;
+            //         break;
+            // }
+            const LabelStore = useLabelStore()
+            let color = LabelStore.findColor(label)
+            if (color == undefined){
+                color = "#FFFFFF"; // default color is white
             }
             const material = new THREE.LineBasicMaterial({color: color})
             const boundingBox = new THREE.LineSegments(edges, material)
@@ -87,7 +93,7 @@ export const useAnnotationStore = defineStore('annotation', {
                     width: width,
                     height: height,
                     depth: depth,
-                    color: color,
+                    color: parseInt(color.replace("#", ""), 16),
                     rotationX: 0,
                     rotationY: 0,
                     rotationZ: 0,
@@ -101,7 +107,7 @@ export const useAnnotationStore = defineStore('annotation', {
                     width: width,
                     height: height,
                     depth: depth,
-                    color: color,
+                    color: parseInt(color.replace("#", ""), 16),
                     rotationX: 0,
                     rotationY: 0,
                     rotationZ: 0,
@@ -129,22 +135,11 @@ export const useAnnotationStore = defineStore('annotation', {
             // 创建边界框
             const geometry = new THREE.BoxGeometry(width, height, depth)
             const edges = new THREE.EdgesGeometry(geometry)
-            let color = 0x00ff00
-            // 与label tool关联后需要修改
-            // switch (label) {
-            //     case 'Car':
-            //         color = 0x00ff00;
-            //         break;
-            //     case 'Pedestrian':
-            //         color = 0xff0000;
-            //         break;
-            //     case 'Cyclist':
-            //         color = 0x0000ff;
-            //         break;
-            //     case 'Traffic Sign':
-            //         color = 0xffff00;
-            //         break;
-            // }
+            const LabelStore = useLabelStore()
+            let color = LabelStore.findColor(label)
+            if (color == undefined){
+                color = "#FFFFFF"; // default color is white
+            }
             const material = new THREE.LineBasicMaterial({color: color})
             const boundingBox = new THREE.LineSegments(edges, material)
             boundingBox.position.set(x, y, z)
@@ -176,19 +171,19 @@ export const useAnnotationStore = defineStore('annotation', {
                 this.selectedAnnotation = id
             }
         },
-        setCurrentBox(box: {
-            x: number,
-            y: number,
-            z: number,
-            width: number,
-            height: number,
-            depth: number,
-            rotationX: number,
-            rotationY: number,
-            rotationZ: number
-        }) {
-            this.currentBox = box
-        },
+        // setCurrentBox(box: {
+        //     x: number,
+        //     y: number,
+        //     z: number,
+        //     width: number,
+        //     height: number,
+        //     depth: number,
+        //     rotationX: number,
+        //     rotationY: number,
+        //     rotationZ: number
+        // }) {
+        //     this.currentBox = box
+        // },
         updateAnnotation(id: string | null, x: number, y: number, z: number,
                          width: number, height: number, depth: number,
                          rotationX: number, rotationY: number, rotationZ: number) {

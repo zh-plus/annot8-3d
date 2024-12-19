@@ -4,6 +4,7 @@ import { useAnnotationStore } from './annotation'
 import {v4 as uuidv4} from 'uuid'
 import * as fs from 'fs';
 import axios from 'axios';
+import * as THREE from 'three';
 
 export const useLabelStore = defineStore('labels', {
     state: (): LabelState => ({
@@ -29,10 +30,13 @@ export const useLabelStore = defineStore('labels', {
             });
 
             const fetchedLabels = response.data;
+            console.log("label! !!!!!",response.data)
             // 更新 state.labels
-            this.labels = fetchedLabels.map((labelName: string) => ({
-                id: uuidv4(), // 为每个 label 生成唯一 ID
-                name: labelName
+            this.labels = fetchedLabels.map((label: { name: string; color: string }) => ({
+                id: uuidv4(), // Generate a unique ID for each label
+                name: label.name,
+                color: label.color,
+                BBox: []
             }));
             } catch (error) {
               console.error('Failed to fetch annotations:', error);
@@ -42,7 +46,7 @@ export const useLabelStore = defineStore('labels', {
         addLabel(name: string) {
             const trimmedName = name.trim()
             if (trimmedName && !this.labels.some(label => label.name === trimmedName)) {
-                this.labels.push({id: uuidv4(), name: trimmedName})
+                this.labels.push({id: uuidv4(), name: trimmedName,BBox:[]})
             }
         },
 
@@ -73,6 +77,32 @@ export const useLabelStore = defineStore('labels', {
             }
             }
 
+        },
+        findColor(labelname: string|undefined){
+            const label = this.labels.find(l => l.name == labelname)
+            return label?.color
+        },
+        addBBox(labelname: string| undefined,BBox:THREE.LineSegments){
+            const label = this.labels.find(l => l.name == labelname)
+            label?.BBox.push({id:'1',bbox:BBox})
+            console.log('pushhhhh',BBox)
+        },
+        deleteBBox(labelname: string | undefined, BBox: THREE.Object3D | undefined) {
+            if (!labelname || !BBox) {
+                return;
+            }
+            const label = this.labels.find(l => l.name === labelname);
+            if (!label) {
+                return;
+            }
+            // 使用 for 循环删除匹配的 BBox
+            for (let i = 0; i < label.BBox.length; i++) {
+                if (label.BBox[i].bbox.uuid === BBox.uuid) {
+                    console.log("Deleting BBox at index:", i);
+                    label.BBox.splice(i, 1);
+                    break; // 找到后退出循环
+                }
+            }
         }
-    }
+}
 })
