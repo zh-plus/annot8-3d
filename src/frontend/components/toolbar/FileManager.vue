@@ -25,7 +25,7 @@
         <div v-else-if="currentLevel === 3">
           <ul class="directory-list">
             <li v-for="file in currentPointcloudFiles" :key="file">
-              <button @click="openPCD(file)" class="file-item">📄 {{ file.split('\\').pop() }}</button>
+              <button @click="openPCD(file)" class="file-item">📄 {{ file.split('\\').pop()?.split('/').pop() }}</button>
             </li>
           </ul>
         </div>
