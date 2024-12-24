@@ -14,10 +14,11 @@
     "axios": "^1.7.8",
     "camera-controls": "^2.9.0",
     "pinia": "^2.2.6",
-    "three": "^0.161.0",
+    "three": "^0.171.0",
     "uuid": "^11.0.2",
     "vue": "^3.5.12",
-    "vuetify": "^3.7.3"
+    "vuetify": "^3.7.3",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

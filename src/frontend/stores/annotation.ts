@@ -46,7 +46,9 @@ export const useAnnotationStore = defineStore('annotation', {
                 color: annotation.color,
                 rotationX: annotation.rotationX,
                 rotationY: annotation.rotationY,
-                rotationZ: annotation.rotationZ
+                rotationZ: annotation.rotationZ,
+                yx_left: annotation.x - annotation.width / 2,
+                yx_right: annotation.x + annotation.width / 2,
             }
             this.annotations.push({
                 id: uuidv4(),
@@ -182,7 +184,9 @@ export const useAnnotationStore = defineStore('annotation', {
             depth: number,
             rotationX: number,
             rotationY: number,
-            rotationZ: number
+            rotationZ: number,
+            yx_left: number,
+            yx_right: number,
         }) {
             this.currentBox = box
         },

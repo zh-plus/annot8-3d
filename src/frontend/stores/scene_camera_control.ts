@@ -140,6 +140,7 @@ export const useSceneCamera = defineStore('scene', {
             if (this.current_head_camera) {
                 this.current_head_camera.up.set(0, 0, -1); // 设置相机的 "上" 方向
                 if (this.type == 0) {
+                    //position需要修改
                     controls[0].object.position.set(
                         mainPosition.x, // Fixed position for side view
                         mainPosition.y + 5,

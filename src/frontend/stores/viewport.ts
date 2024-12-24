@@ -66,17 +66,14 @@ export const useViewportStore = defineStore('viewport', {
 
                 switch (viewerId) {
                     case VIEWER_MODES.OVERHEAD:
-
                         sceneCamera.update_camera_head(controls, mainPosition, mainTarget)
                         break
 
                     case VIEWER_MODES.SIDE:
-
                         sceneCamera.update_camera_side(controls, mainPosition, mainTarget)
                         break
 
                     case VIEWER_MODES.FRONT:
-
                         sceneCamera.update_camera_front(controls, mainPosition, mainTarget)
                         break
                 }
