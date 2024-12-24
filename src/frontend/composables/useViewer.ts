@@ -55,6 +55,7 @@ export function useViewer(options: UseViewerOptions) {
         // Apply control settings
         // 这行代码用于应用默认控制器配置并结合 controlsConfig（如果有的话）进行调整。
         Object.assign(viewerContext.controls, CONTROLS, controlsConfig || {})
+
         // 控制器（controls）用于操作场景视角的交互（如鼠标拖动进行旋转等）
         viewerContext.controls[0].minDistance = constraints?.minDistance || VIEWER_CONSTRAINTS.minDistance
         viewerContext.controls[0].maxDistance = constraints?.maxDistance || VIEWER_CONSTRAINTS.maxDistance

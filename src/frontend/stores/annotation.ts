@@ -4,7 +4,6 @@ import type {Box} from './types'
 import type {Annotation} from '@/types'
 import {v4 as uuidv4} from 'uuid'
 import type {File_Anno} from '../types/annotation'
-import axios from 'axios';
 import {useFileStore} from '@/stores/file';
 import { useLabelStore } from './labels'
 import * as THREE from "three";
@@ -48,7 +47,9 @@ export const useAnnotationStore = defineStore('annotation', {
                 color: annotation.color,
                 rotationX: annotation.rotationX,
                 rotationY: annotation.rotationY,
-                rotationZ: annotation.rotationZ
+                rotationZ: annotation.rotationZ,
+                yx_left: annotation.x - annotation.width / 2,
+                yx_right: annotation.x + annotation.width / 2,
             }
             this.annotations.push({
                 id: uuidv4(),
@@ -86,6 +87,7 @@ export const useAnnotationStore = defineStore('annotation', {
             if (intersects.length > 0) {
                 const intersection = intersects[0]
                 boundingBox.position.copy(intersection.point)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: intersection.point.x,
                     z: intersection.point.z,
@@ -100,6 +102,7 @@ export const useAnnotationStore = defineStore('annotation', {
                 })
             } else {
                 boundingBox.position.set(0, 0, 0)
+                // boundingBox.rotation.set(0, 0, 0);  // 绕 X, Y, Z 轴旋转
                 this.addAnnotation({
                     x: 0,
                     z: 0,
@@ -147,12 +150,8 @@ export const useAnnotationStore = defineStore('annotation', {
         },
         removeAnnotation(id: string) {
             const index = this.annotations.findIndex(a => a.id === id)
-            // if (fileStore.selectedFile!= null){
-            // fileStore.selectedFile.annotations=annotations
-            // }
             if (index !== -1) {
                 this.annotations.splice(index, 1)
-                console.log("annotation removed:", this.annotations)
                 if (this.selectedAnnotation === id) {
                     this.selectedAnnotation = null
                 }
@@ -171,19 +170,21 @@ export const useAnnotationStore = defineStore('annotation', {
                 this.selectedAnnotation = id
             }
         },
-        // setCurrentBox(box: {
-        //     x: number,
-        //     y: number,
-        //     z: number,
-        //     width: number,
-        //     height: number,
-        //     depth: number,
-        //     rotationX: number,
-        //     rotationY: number,
-        //     rotationZ: number
-        // }) {
-        //     this.currentBox = box
-        // },
+        setCurrentBox(box: {
+            x: number,
+            y: number,
+            z: number,
+            width: number,
+            height: number,
+            depth: number,
+            rotationX: number,
+            rotationY: number,
+            rotationZ: number,
+            yx_left: number,
+            yx_right: number,
+        }) {
+            this.currentBox = box
+        },
         updateAnnotation(id: string | null, x: number, y: number, z: number,
                          width: number, height: number, depth: number,
                          rotationX: number, rotationY: number, rotationZ: number) {

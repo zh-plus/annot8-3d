@@ -11,6 +11,7 @@
             <div class="label-controller">
           <label-controller/>
         </div>
+
           </div>
           <!-- Side Views and Label Editor Container -->
           <!-- Side Views -->
@@ -132,6 +133,7 @@ const {lgAndUp, mdAndDown} = useDisplay()
 }
 
 .auxiliary-view-container-over:last-child {
+
   border-bottom: none;
 }
 
@@ -140,6 +142,33 @@ const {lgAndUp, mdAndDown} = useDisplay()
   flex: 1;
   border-bottom: 1px solid v-bind('UI_COLORS.border');
   aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-side:last-child {
+  border-bottom: none;
+}
+
+.auxiliary-view-container-front {
+  grid-area: front;
+  flex: 1;
+  border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3));
+}
+
+.auxiliary-view-container-over:last-child {
+  border-bottom: none;
+}
+
+.auxiliary-view-container-side {
+  grid-area: side;
+  flex: 1;
+
+  /* border-bottom: 1px solid v-bind('UI_COLORS.border');
+  aspect-ratio: var(calc(4 / 3)); */
+
+  border-left: 1px solid var(--border-color);
+  height: 100%;
+  overflow: hidden;
 }
 
 .auxiliary-view-container-side:last-child {

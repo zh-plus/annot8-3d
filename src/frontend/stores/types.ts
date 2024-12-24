@@ -72,6 +72,8 @@ export interface AnnotationState {
         rotationX: number,  // 绕 X 轴旋转
         rotationY: number,  // 绕 Y 轴旋转
         rotationZ: number,   // 绕 Z 轴旋转
+        yx_left: number;  //正面
+        yx_right: number;
     } | null
 }
 
@@ -85,6 +87,8 @@ export interface Box {
     rotationX: number;  // 绕 X 轴旋转
     rotationY: number;  // 绕 Y 轴旋转
     rotationZ: number;   // 绕 Z 轴旋转
+    yx_left: number;  //正面
+    yx_right: number;
 }
 
 export interface BoxPosition {
@@ -97,6 +101,11 @@ export interface BoxDimensions {
     width: number;
     height: number;
     depth: number;
+}
+
+export interface BoxPreDimensions {
+    yx_left: number;
+    yx_right: number;
 }
 
 export interface BoxRotation {
