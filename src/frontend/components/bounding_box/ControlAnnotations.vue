@@ -8,6 +8,8 @@ import {useAnnotationStore, useToolStore, useViewportStore} from "@/stores";
 import {useSceneCamera} from "@/stores/scene_camera_control"
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
+import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
+import {useFileStore} from '@/stores/file'
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import {useAnnoRange} from "@/stores/anno_range"
 
@@ -25,6 +27,11 @@ nextTick(() => {
     emit('isDrag', isDrag())
   })
 })
+
+const toolStore = useToolStore(); // 获取 store 实例
+const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
+const fileStore = useFileStore();
+const {selectedFile} = storeToRefs(fileStore);
 
 const annotationStore = useAnnotationStore()
 const sceneCamera = useSceneCamera()
@@ -156,6 +163,7 @@ const ClickBBox = (event: MouseEvent): void => {
   if (intersectedBox) {
     const {x, y, z} = intersectedBox.object.position
     // 查找与该位置匹配的 annotation
+    
     const annotation = annotationStore.annotations.find((annotation) => {
       const epsilon_x = annotation.width * 0.6
       const epsilon_y = annotation.height * 0.6;
@@ -192,7 +200,6 @@ const ClickBBox = (event: MouseEvent): void => {
         }
       }
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
-
       //切换正交相机
       sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
       setTimeout(() => {
@@ -260,6 +267,7 @@ const cancel_select = (): void => {
     sceneCamera.boxPosition = {x: 0, y: 0, z: 0}
   }
 }
+
 // 鼠标拖动相关变量
 let initialMousePosition = {x: 0, y: 0};
 let initialBoxPosition = {x: 0, y: 0};
