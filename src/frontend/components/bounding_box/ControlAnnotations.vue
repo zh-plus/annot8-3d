@@ -129,13 +129,11 @@ const updateBoxPreProperties = () => {
 };
 
 
-
-watch([boxDimensions, boxPosition, boxRotation, boxPreDimension], async () => {
+watch([boxDimensions, boxPosition, boxRotation], async () => {
   console.log('Box dimensions or position changed:', boxDimensions, boxPosition);
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
-
     if (sceneCamera.type == 1) {
       sceneCamera.set_observe_camera({x: boxPosition.x, y: boxPosition.y, z: boxPosition.z}, boxRotation)
     }

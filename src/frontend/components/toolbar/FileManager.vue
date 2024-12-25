@@ -34,9 +34,9 @@
 </template>
   
 <script setup lang="ts">
-  import { ref } from 'vue';
-  import axios from 'axios';
-  import { useFileStore } from '@/stores/file.ts';
+import { ref } from 'vue';
+import axios from 'axios';
+import { useFileStore } from '@/stores/file.ts';
 import { File_Anno } from '@/types';
 import path from 'path';
 import { constants } from 'buffer';
