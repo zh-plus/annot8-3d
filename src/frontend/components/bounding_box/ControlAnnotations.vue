@@ -369,17 +369,17 @@ const onKeyUp_a = (event: KeyboardEvent) => {
   }
 }
 
-const onKeyDown_m = (event: KeyboardEvent) => {
-  if (event.key === 'm') {
-    sceneCamera.m_signal = true
+const onKeyDown_z = (event: KeyboardEvent) => {
+  if (event.key === 'z') {
+    sceneCamera.z_signal = true
     remove_transformControls()
     console.log("isKeyAPressed:", isKeyAPressed_a)
   }
 }
 
-const onKeyUp_m = (event: KeyboardEvent) => {
-  if (event.key === 'm') {
-    sceneCamera.m_signal = false
+const onKeyUp_z = (event: KeyboardEvent) => {
+  if (event.key === 'z') {
+    sceneCamera.z_signal = false
     create_transformControls()
     console.log("isKeyAPressed:", isKeyAPressed_a)
   }
@@ -434,10 +434,10 @@ onMounted(() => {
   console.log('DrawBB component mounted');
   window.addEventListener('keydown', onKeyDown_a)
   window.addEventListener('keydown', onKeyDown_d)
-  window.addEventListener('keydown', onKeyDown_m)
+  window.addEventListener('keydown', onKeyDown_z)
   window.addEventListener('keyup', onKeyUp_a)
   window.addEventListener('keyup', onKeyUp_d)
-  window.addEventListener('keyup', onKeyUp_m)
+  window.addEventListener('keyup', onKeyUp_z)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
     canvas.addEventListener('mousedown', onMouseDown);
@@ -451,10 +451,10 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeyDown_a)
   window.removeEventListener('keydown', onKeyDown_d)
-  window.removeEventListener('keydown', onKeyDown_m)
+  window.removeEventListener('keydown', onKeyDown_z)
   window.removeEventListener('keyup', onKeyUp_a)
   window.removeEventListener('keyup', onKeyUp_d)
-  window.removeEventListener('keyup', onKeyUp_m)
+  window.removeEventListener('keyup', onKeyUp_z)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
     canvas.removeEventListener('mousedown', onMouseDown);

@@ -68,7 +68,7 @@ const onPointerDown = (event: PointerEvent) => {
 //鼠标移动事件
 const onPointerMove = (event: PointerEvent) => {
   if (!isDrawing.value || !selectedTool.value) return
-  if (event.type !== 'wheel' && (sceneCamera.drag_signal && !sceneCamera.m_signal)) {
+  if (event.type !== 'wheel' && (sceneCamera.drag_signal && !sceneCamera.z_signal)) {
     console.log("Should not move")
     event.preventDefault()  // 阻止默认行为
     event.stopPropagation() // 阻止事件传播
@@ -135,7 +135,7 @@ watchEffect(() => {
   console.log('viewerContext changed:', viewerContext.value)
 })
 watch(
-  [() => sceneCamera.type, () => sceneCamera.m_signal], // 监听 Pinia store 中的 type 属性
+  [() => sceneCamera.type, () => sceneCamera.z_signal], // 监听 Pinia store 中的 type 属性
   (newType, oldType) => {
     console.log('sceneCamera.type changed from', oldType, 'to', newType);
     // 当 sceneCamera.type 变化时，触发 viewportStore 更新

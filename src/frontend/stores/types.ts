@@ -56,7 +56,7 @@ export interface SceneCamera {
     distance: number
     seal_sphere: THREE.Mesh | undefined
     drag_signal: boolean
-    m_signal: boolean
+    z_signal: boolean
 }
 
 export interface AnnotationState {
