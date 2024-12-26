@@ -206,6 +206,17 @@ export const useAnnotationStore = defineStore('annotation', {
                     annotation.rotationY = rotationY
                     annotation.rotationZ = rotationZ
                 }
+                if(this.currentBox){
+                    this.currentBox.x = x
+                    this.currentBox.y = y
+                    this.currentBox.z = z
+                    this.currentBox.width = width
+                    this.currentBox.height = height
+                    this.currentBox.depth = depth
+                    this.currentBox.rotationX = rotationX
+                    this.currentBox.rotationY = rotationY
+                    this.currentBox.rotationZ = rotationZ
+                }
             }
         }
     }

@@ -26,7 +26,9 @@ export const useSceneCamera = defineStore('scene', {
         boxRotation: {rotationX: 0, rotationY: 0, rotationZ: 0},
         aspect: 0,
         distance: 0,
-        seal_sphere: undefined
+        seal_sphere: undefined,
+        drag_signal: false,
+        m_signal: false
     }),
     actions: {
         createAdjustableCube() {

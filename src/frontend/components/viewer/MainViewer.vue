@@ -7,8 +7,7 @@
     </div>
     <ControlAnnotations
         v-if="viewerContext"
-        :viewerContext="viewerContext"
-        @isDrag="handleIsDrag"/>
+        :viewerContext="viewerContext"/>
   </div>
 </template>
 
@@ -45,14 +44,14 @@ const isDrawing = ref(false)
 const startPoint = new THREE.Vector2()
 const currentPoint = new THREE.Vector2()
 const dragStatus = ref(false)
-const handleIsDrag = (newStatus: boolean | undefined) => {
-    if (newStatus !== undefined) {
-    dragStatus.value = newStatus
-    console.log('Dragging is checked by MainViewer:', dragStatus.value)
-  } else {
-    console.log('Drag status is undefined')
-  }
-}
+// const handleIsDrag = (newStatus: boolean | undefined) => {
+//     if (newStatus !== undefined) {
+//     dragStatus.value = newStatus
+//     console.log('Dragging is checked by MainViewer:', dragStatus.value)
+//   } else {
+//     console.log('Drag status is undefined')
+//   }
+// }
 //鼠标按下事件。
 const onPointerDown = (event: PointerEvent) => {
   if (!selectedTool.value) return
@@ -69,7 +68,7 @@ const onPointerDown = (event: PointerEvent) => {
 //鼠标移动事件
 const onPointerMove = (event: PointerEvent) => {
   if (!isDrawing.value || !selectedTool.value) return
-  if (dragStatus && annotationStore.isDrawing) {
+  if (event.type !== 'wheel' && (sceneCamera.drag_signal && !sceneCamera.m_signal)) {
     console.log("Should not move")
     event.preventDefault()  // 阻止默认行为
     event.stopPropagation() // 阻止事件传播
@@ -136,7 +135,7 @@ watchEffect(() => {
   console.log('viewerContext changed:', viewerContext.value)
 })
 watch(
-  () => sceneCamera.type, // 监听 Pinia store 中的 type 属性
+  [() => sceneCamera.type, () => sceneCamera.m_signal], // 监听 Pinia store 中的 type 属性
   (newType, oldType) => {
     console.log('sceneCamera.type changed from', oldType, 'to', newType);
     // 当 sceneCamera.type 变化时，触发 viewportStore 更新

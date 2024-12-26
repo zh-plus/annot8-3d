@@ -40,9 +40,11 @@ export const useViewportStore = defineStore('viewport', {
         updateMainCameraState(camera: PerspectiveCamera | OrthographicCamera, controls: OrbitControls) {
             const sceneCamera = useSceneCamera()
             if(sceneCamera.type == 1){
-                controls.target.set(sceneCamera.boxPosition.x, sceneCamera.boxPosition.y, sceneCamera.boxPosition.z)
+                if(!sceneCamera.drag_signal || sceneCamera.m_signal){
+                    console.log("sceneCamera.m_signal")
+                    controls.target.set(sceneCamera.boxPosition.x, sceneCamera.boxPosition.y, sceneCamera.boxPosition.z)
+                }
             }
-            //sceneCamera.distance = controls[0].distance
             this.mainCameraState = {
                 position: camera.position.clone(),
                 target: controls.target.clone(),

@@ -8,7 +8,7 @@ import {useAnnotationStore, useToolStore, useViewportStore} from "@/stores";
 import {useSceneCamera} from "@/stores/scene_camera_control"
 import {onMounted, onBeforeUnmount} from 'vue'
 import {VCard, VTextField, VSlider} from 'vuetify/components';
-import { storeToRefs } from 'pinia'; // 用于将响应式对象解构成引用
+import {storeToRefs} from 'pinia'; // 用于将响应式对象解构成引用
 import {useFileStore} from '@/stores/file'
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 import {useAnnoRange} from "@/stores/anno_range"
@@ -29,7 +29,7 @@ nextTick(() => {
 })
 
 const toolStore = useToolStore(); // 获取 store 实例
-const { selectedTool } = storeToRefs(toolStore); // 解构出 selectedTool
+const {selectedTool} = storeToRefs(toolStore); // 解构出 selectedTool
 const fileStore = useFileStore();
 const {selectedFile} = storeToRefs(fileStore);
 
@@ -44,6 +44,7 @@ const scene = props.viewerContext.scene
 
 const isKeyAPressed_a = ref(false)
 const isKeyAPressed_d = ref(false)
+const isKeyAPressed_m = ref(false)
 const showControlPanel = ref(false)
 
 const boxDimensions = reactive<BoxDimensions>({
@@ -70,17 +71,11 @@ let currentPx = 0;
 let currentPy = 0;
 let currentPz = 0;
 
-let transformControls: TransformControls;
+let transformControls: TransformControls | null = null;
 let helper: THREE.Object3D | null = null;
 
 const updateBoxProperties = () => {
   if (currentlySelectedBox instanceof THREE.LineSegments) {
-    // 检查是否需要更新
-    annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
-        boxPosition.x, boxPosition.y, boxPosition.z,
-        boxDimensions.width, boxDimensions.height, boxDimensions.depth,
-        boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
-
     const newGeometry = new THREE.BoxGeometry(
         boxDimensions.width,
         boxDimensions.height,
@@ -94,10 +89,14 @@ const updateBoxProperties = () => {
         boxPosition.z
     );
     newBox.rotation.set(boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
+    remove_transformControls()
     // 替换旧对象
     scene.remove(currentlySelectedBox);
     currentlySelectedBox.geometry.dispose(); // 释放旧几何体资源
     currentlySelectedBox = newBox; // 更新为新创建的 LineSegments
+    if(sceneCamera.drag_signal){
+      create_transformControls()
+    }
     scene.add(currentlySelectedBox);
   }
 };
@@ -109,8 +108,27 @@ const updateBoxPreProperties = () => {
   }
 };
 
-watch([boxDimensions, boxPosition, boxRotation, boxPreDimension], async () => {
-  console.log('Box dimensions or position changed:', boxDimensions, boxPosition);
+const updateBoxPosProperties = () => {
+  annotationStore.updateAnnotation(annotationStore.selectedAnnotation,
+      boxPosition.x, boxPosition.y, boxPosition.z,
+      boxDimensions.width, boxDimensions.height, boxDimensions.depth,
+      boxRotation.rotationX, boxRotation.rotationY, boxRotation.rotationZ);
+}
+
+watch([boxPosition], async () => {
+  console.log('position changed:', boxDimensions, boxPosition);
+  if (currentlySelectedBox) {
+    console.log("ready to updateBoxPosProperties");
+    updateBoxPosProperties();
+    if (sceneCamera.type == 1) {
+      sceneCamera.set_observe_camera({x: boxPosition.x, y: boxPosition.y, z: boxPosition.z}, boxRotation)
+    }
+    viewportStore.updateMainCameraState(props.viewerContext.cameras[0], props.viewerContext.controls[0]);
+  }
+}, {deep: true});
+
+watch([boxDimensions, boxRotation], async () => {
+  console.log('Box dimensions or rotations:', boxDimensions, boxPosition);
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxProperties();
@@ -122,7 +140,7 @@ watch([boxDimensions, boxPosition, boxRotation, boxPreDimension], async () => {
 }, {deep: true});
 
 watch([boxPreDimension], async () => {
-  console.log('Box PreDimension and Position changed:', boxPreDimension, boxPosition);
+  console.log('Box PreDimension:', boxPreDimension, boxPosition);
   if (currentlySelectedBox) {
     console.log("ready to updateBoxProperties");
     updateBoxPreProperties();
@@ -163,7 +181,6 @@ const ClickBBox = (event: MouseEvent): void => {
   if (intersectedBox) {
     const {x, y, z} = intersectedBox.object.position
     // 查找与该位置匹配的 annotation
-    
     const annotation = annotationStore.annotations.find((annotation) => {
       const epsilon_x = annotation.width * 0.6
       const epsilon_y = annotation.height * 0.6;
@@ -202,9 +219,9 @@ const ClickBBox = (event: MouseEvent): void => {
       currentlySelectedBox = intersectedBox.object as THREE.LineSegments;
       //切换正交相机
       sceneCamera.set_observe_camera({x: annotation.x, y: annotation.y, z: annotation.z}, boxRotation)
-      setTimeout(() => {
-        seal_sphere = sceneCamera.createAdjustableCube()
-      }, 50);
+      // setTimeout(() => {
+      //   seal_sphere = sceneCamera.createAdjustableCube()
+      // }, 50);
       // 打开面板
       showControlPanel.value = true;
       currentPx = annotationStore.currentBox.x
@@ -233,25 +250,58 @@ const build_BBox = (event: MouseEvent): void => {
     scene.add(BBox)
   }
 }
+
+const remove_transformControls = (): void => {
+  if (transformControls instanceof TransformControls) {
+    // Detach the transformControls
+    transformControls.detach();
+    // Remove helper from scene if it exists
+    let Helper = transformControls.getHelper();
+    if (Helper) {
+      // Clear helper and remove it from scene
+      Helper.clear();
+      props.viewerContext.scene.remove(Helper);
+    }
+    if (props.viewerContext.scene) {
+      props.viewerContext.scene.remove(transformControls as unknown as THREE.Object3D);  // Type casting
+    }
+    transformControls.dispose();  // Release resources associated with transformControls
+    transformControls = null
+  }
+}
+
+const create_transformControls = (): void => {
+  if (transformControls == null && sceneCamera.drag_signal) {
+    transformControls = new TransformControls(props.viewerContext?.cameras[0], props.viewerContext?.renderer.domElement);
+    if (currentlySelectedBox instanceof THREE.LineSegments) {
+      transformControls.attach(currentlySelectedBox); // 将控制器附加到对象
+      helper = transformControls.getHelper()
+      scene.add(helper); // 然后将 TransformControls 添加到场景中
+      // 监听 transformControls 的 "change" 事件
+      transformControls.addEventListener('change', () => {
+        // 获取当前选择的对象的位置和旋转信息
+        if (currentlySelectedBox != null) {
+          const position = currentlySelectedBox.position;
+          boxPosition.x = position.x;
+          boxPosition.y = position.y;
+          boxPosition.z = position.z;
+        }
+        if (annotationStore.currentBox) {
+          annotationStore.currentBox.x = boxPosition.x;
+          annotationStore.currentBox.y = boxPosition.y;
+          annotationStore.currentBox.z = boxPosition.z;
+        }
+      });
+    }
+  }
+}
+
 const cancel_select = (): void => {
   currentlySelectedBox = null
   showControlPanel.value = false;
   annotationStore.selectedAnnotation = null;
   annotationStore.currentBox = null;
-
-  let Helper = null
-  if (transformControls instanceof TransformControls) {
-    scene.remove(transformControls as unknown as THREE.Object3D);
-    Helper = transformControls.getHelper()
-    Helper.clear()
-    props.viewerContext.scene.remove(Helper)
-    transformControls.detach()
-    transformControls.dispose(); // 释放资源
-  }
-  // if (helper != null) {
-  //   helper.clear()
-  //   props.viewerContext.scene.remove(helper)
-  // }
+  remove_transformControls()
   currentPx = 0
   currentPy = 0
   currentPz = 0
@@ -268,10 +318,6 @@ const cancel_select = (): void => {
   }
 }
 
-// 鼠标拖动相关变量
-let initialMousePosition = {x: 0, y: 0};
-let initialBoxPosition = {x: 0, y: 0};
-
 const onMouseDown = (event: MouseEvent): void => {
   if (event.button === 0) {
   } else if (event.button === 2) {
@@ -281,33 +327,13 @@ const onMouseDown = (event: MouseEvent): void => {
   if (!currentlySelectedBox || !isDrag()) return;
   console.log("ready to move, you can drag your mouse")
   annotationStore.isDrawing = true
-  // 开始拖动
-  initialMousePosition = {x: event.clientX, y: event.clientY};
-  // 记录边界框初始位置
-  initialBoxPosition = {
-    x: boxPosition.x as number,
-    y: boxPosition.z as number,
-  };
-  transformControls = new TransformControls(props.viewerContext?.cameras[0], props.viewerContext?.renderer.domElement);
-  if (currentlySelectedBox instanceof THREE.LineSegments) {
-    transformControls.attach(currentlySelectedBox); // 将控制器附加到对象
-    helper = transformControls.getHelper()
-    scene.add(helper); // 然后将 TransformControls 添加到场景中
-  }
+  create_transformControls()
 };
 
 const onMouseMove = (event: MouseEvent): void => {
   if (!annotationStore.isDrawing || !currentlySelectedBox) return;
   console.log("move is running")
-  // // 计算鼠标移动的偏移量
-  // const deltaX = (event.clientX - initialMousePosition.x) * 0.1; // 调整系数 0.01 可以调节灵敏度
-  // const deltaY = (event.clientY - initialMousePosition.y) * 0.1;
-  //
-  // // 更新边界框的位置（这里假设拖动只更新 x 和 y 轴，可以根据需要调整为 3D 拖动）
-  // boxPosition.x = initialBoxPosition.x + deltaX;
-  // boxPosition.z = initialBoxPosition.y + deltaY; // 鼠标 y 轴方向与 3D 场景 y 轴方向相反
 };
-
 
 const onMouseUp = (): void => {
   // 停止拖动
@@ -342,6 +368,23 @@ const onKeyUp_a = (event: KeyboardEvent) => {
     console.log("isKeyAPressed:", isKeyAPressed_a)
   }
 }
+
+const onKeyDown_m = (event: KeyboardEvent) => {
+  if (event.key === 'm') {
+    sceneCamera.m_signal = true
+    remove_transformControls()
+    console.log("isKeyAPressed:", isKeyAPressed_a)
+  }
+}
+
+const onKeyUp_m = (event: KeyboardEvent) => {
+  if (event.key === 'm') {
+    sceneCamera.m_signal = false
+    create_transformControls()
+    console.log("isKeyAPressed:", isKeyAPressed_a)
+  }
+}
+
 const onKeyDown_d = (event: KeyboardEvent) => {
   if (event.key === 'd') {
     isKeyAPressed_d.value = true
@@ -377,7 +420,13 @@ const isDelete = () => {
 const isDrag = () => {
   const toolStore = useToolStore()
   const selectedTool = toolStore.currentTool;  // 使用 getter 获取选中的工具
-  return (selectedTool && selectedTool.active && selectedTool.id === 'drag')
+  if (selectedTool && selectedTool.active && selectedTool.id === 'drag') {
+    sceneCamera.drag_signal = true
+    return true;
+  } else {
+    sceneCamera.drag_signal = false
+    return false;
+  }
 }
 
 // 组件挂载时监听
@@ -385,8 +434,10 @@ onMounted(() => {
   console.log('DrawBB component mounted');
   window.addEventListener('keydown', onKeyDown_a)
   window.addEventListener('keydown', onKeyDown_d)
+  window.addEventListener('keydown', onKeyDown_m)
   window.addEventListener('keyup', onKeyUp_a)
   window.addEventListener('keyup', onKeyUp_d)
+  window.addEventListener('keyup', onKeyUp_m)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
     canvas.addEventListener('mousedown', onMouseDown);
@@ -398,10 +449,12 @@ onMounted(() => {
 
 // 组件卸载时监听
 onBeforeUnmount(() => {
-  window.addEventListener('keydown', onKeyDown_a)
-  window.addEventListener('keydown', onKeyDown_d)
-  window.addEventListener('keyup', onKeyUp_a)
-  window.addEventListener('keyup', onKeyUp_d)
+  window.removeEventListener('keydown', onKeyDown_a)
+  window.removeEventListener('keydown', onKeyDown_d)
+  window.removeEventListener('keydown', onKeyDown_m)
+  window.removeEventListener('keyup', onKeyUp_a)
+  window.removeEventListener('keyup', onKeyUp_d)
+  window.removeEventListener('keyup', onKeyUp_m)
   const canvas = props.viewerContext?.renderer.domElement
   if (canvas) {
     canvas.removeEventListener('mousedown', onMouseDown);
